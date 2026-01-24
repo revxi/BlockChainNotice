@@ -1,0 +1,6 @@
+[
+  "function issueNotice(string _ipfsHash, string _title) public",
+  "function getNoticeCount() public view returns (uint256)",
+  "function allNotices(uint256) public view returns (string ipfsHash, address issuedBy, uint256 timestamp, string title)",
+  "event NoticeIssued(uint256 indexed id, string ipfsHash, uint256 timestamp)"
+]
