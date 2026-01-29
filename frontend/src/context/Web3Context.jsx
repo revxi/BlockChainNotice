@@ -1,12 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ethers } from "ethers";
+import ABI from "../utils/abi.json";
 
 const Web3Context = createContext();
+
+// Contract address - update this after deployment
+const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a"; // Localhost default
 
 export const Web3Provider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
+  const [contract, setContract] = useState(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -41,9 +46,17 @@ export const Web3Provider = ({ children }) => {
       const newProvider = new ethers.BrowserProvider(window.ethereum);
       const newSigner = await newProvider.getSigner();
 
+      // Initialize contract
+      const contractInstance = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        ABI,
+        newSigner
+      );
+
       setAccount(accounts[0]);
       setProvider(newProvider);
       setSigner(newSigner);
+      setContract(contractInstance);
       setConnected(true);
     } catch (error) {
       console.error("Error connecting wallet:", error);
@@ -54,6 +67,7 @@ export const Web3Provider = ({ children }) => {
     setAccount(null);
     setProvider(null);
     setSigner(null);
+    setContract(null);
     setConnected(false);
   };
 
@@ -63,6 +77,7 @@ export const Web3Provider = ({ children }) => {
         account,
         provider,
         signer,
+        contract,
         connected,
         connectWallet,
         disconnectWallet,
