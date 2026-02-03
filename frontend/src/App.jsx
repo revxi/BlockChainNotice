@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useWeb3 } from "./context/Web3Context";
-import { Search, ShieldCheck, Lock, Unlock, User, Wallet, LayoutGrid } from "lucide-react";
+import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
+import Login from "./components/Login";
 
 export default function App() {
   const { account, contract, connectWallet } = useWeb3();
   const [notices, setNotices] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
   const [isPublishing, setIsPublishing] = useState(false);
 
   const fetchNotices = async () => {
@@ -43,6 +44,8 @@ export default function App() {
 
   const handlePublish = async (formData) => {
     if (!contract) return alert("Connect Wallet!");
+    if (userRole !== "admin") return alert("Unauthorized: Admins only.");
+
     setIsPublishing(true);
     try {
       // Simulate IPFS Hashing of content
@@ -53,6 +56,10 @@ export default function App() {
     } catch (err) { alert("Only the admin wallet can publish notices!"); }
     setIsPublishing(false);
   };
+
+  if (!userRole) {
+    return <Login onLogin={setUserRole} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#0b0f1a] text-slate-300 font-sans selection:bg-blue-500/30 selection:text-blue-200 flex flex-col">
@@ -115,35 +122,17 @@ export default function App() {
             </div>
           </div>
 
-          <button 
-            onClick={() => setIsAdminLoggedIn(!isAdminLoggedIn)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300 ${
-              isAdminLoggedIn
-                ? 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
-                : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 hover:text-white'
-            }`}
-          >
-            {isAdminLoggedIn ? (
-              <>
-                <Unlock size={18} /> Exit Admin
-              </>
-            ) : (
-              <>
-                <Lock size={18} /> Admin Access
-              </>
-            )}
-          </button>
         </div>
 
         {/* Content Grid */}
         <div className="grid lg:grid-cols-12 gap-8 items-start">
-          {/* Admin Panel - Only visible when logged in */}
-          {isAdminLoggedIn && (
+          {/* Admin Panel - Only visible when logged in as admin */}
+          {userRole === "admin" && (
              <AdminPanel onPublish={handlePublish} loading={isPublishing} />
           )}
 
           {/* Notice Feed - Spans full width if not admin, else takes remaining space */}
-          <div className={`${isAdminLoggedIn ? "lg:col-span-8" : "lg:col-span-12"} transition-all duration-500`}>
+          <div className={`${userRole === "admin" ? "lg:col-span-8" : "lg:col-span-12"} transition-all duration-500`}>
              <NoticeFeed filteredNotices={filteredNotices} searchQuery={searchQuery} />
           </div>
         </div>
