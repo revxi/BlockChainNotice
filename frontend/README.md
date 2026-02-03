@@ -1,16 +1,49 @@
-# React + Vite
+# Frontend Module
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The user interface for BlockNotice, built with modern web technologies to provide a seamless and accessible experience.
 
-Currently, two official plugins are available:
+## Tech Stack
+- **Framework**: React.js (via Vite)
+- **Styling**: Tailwind CSS (Glassmorphism design)
+- **Blockchain Interaction**: Ethers.js
+- **Icons**: Lucide React
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Project Structure
+- `src/components/`: Reusable UI components.
+  - `AdminPanel.jsx`: Form for publishing new notices.
+  - `NoticeFeed.jsx`: Grid layout for displaying notices.
+- `src/NoticeCard.jsx`: Displays individual notices with verified status.
+- `src/context/`: Context providers.
+  - `Web3Context.jsx`: Manages wallet connection and contract instances.
+- `src/App.jsx`: Main application layout and routing logic.
 
-## React Compiler
+## Setup & Running
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- Node.js
+- MetaMask browser extension installed.
 
-## Expanding the ESLint configuration
+### Installation
+```bash
+cd frontend
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Development Server
+Start the local development server:
+```bash
+npm run dev
+```
+Access the app at `http://localhost:5173`.
+
+### Configuration
+1. Ensure your local blockchain node is running (`npx hardhat node` in the `blockchain` folder).
+2. Connect MetaMask to `Localhost 8545` (Chain ID: 31337).
+3. Import a test account from Hardhat into MetaMask using its private key.
+4. Verify the `CONTRACT_ADDRESS` in `src/context/Web3Context.jsx` matches your deployed contract.
+
+## Features
+- **Notice Board**: Publicly viewable feed of verified notices.
+- **Admin Mode**: Toggleable interface for publishing notices (requires transaction signature).
+- **Search**: Filter notices by ID, Title, or Date.
+- **Dark Mode**: Default dark theme with glass effects.

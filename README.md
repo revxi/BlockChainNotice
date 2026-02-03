@@ -1,33 +1,56 @@
-# 📜 BlockNotice: Blockchain-Based Notice System
+# 📜 BlockNotice: Decentralized Notice Board
 
-**BlockNotice** is a decentralized application (dApp) designed to provide an immutable and transparent way for institutions to issue official notices. By leveraging **Ethereum (Hardhat)** and **IPFS**, notices are anchored to the blockchain, ensuring they cannot be tampered with, deleted, or forged.
+**BlockNotice** is a secure, decentralized application (dApp) for issuing and verifying official notices. By leveraging the Ethereum blockchain, it ensures that all published information is immutable, transparent, and tamper-proof.
 
----
+## 🚀 Key Features
+- **Immutable Ledger**: Notices are stored on-chain and cannot be deleted or altered.
+- **Admin Verification**: Only authorized administrators can publish new notices.
+- **Modern UI**: A fully accessible, glassmorphism-styled dashboard built with React.
+- **Real-time Updates**: Direct blockchain queries ensure users see the latest verified data.
 
-## ✨ Features
-* **Immutable Records:** Notices are stored on-chain, making them permanent and verifiable.
-* **Admin Security:** Only authorized wallets (college administration) can publish notices.
-* **Decentralized Storage:** Metadata and titles are stored on the blockchain with IPFS hash pointers.
-* **Real-time Feed:** Users can view the latest verified notices directly from the blockchain ledger.
-* **Responsive UI:** A clean, modern dashboard built with Tailwind CSS.
+## 📂 Repository Structure
 
----
+- **[frontend/](./frontend/)**: The React-based user interface.
+- **[blockchain/](./blockchain/)**: Smart contracts (Solidity) and deployment scripts (Hardhat).
+- **[backend/](./backend/)**: Server-side logic (Work in Progress).
+- **[docs/](./docs/)**: Architecture diagrams and documentation.
 
-## 🛠️ Tech Stack
-* **Frontend:** React.js, Tailwind CSS, Ethers.js, Lucide Icons.
-* **Blockchain:** Solidity, Hardhat, Ethers.js.
-* **Environment:** Node.js / Vite.
+## 🛠️ Quick Start Guide
 
----
+### 1. Prerequisites
+- Node.js (v16+)
+- MetaMask Browser Extension
 
-## 🚀 Installation & Setup
-
-### 1. Clone and Install Dependencies
+### 2. Setup Blockchain
+Start the local blockchain node:
 ```bash
-# In the blockchain directory
 cd blockchain
 npm install
+npx hardhat node
+```
+*Keep this terminal running.*
 
-# In the frontend directory
-cd ../frontend
+In a new terminal, deploy the contract:
+```bash
+cd blockchain
+npx hardhat run scripts/deploy.js --network localhost
+```
+
+### 3. Setup Frontend
+Start the web application:
+```bash
+cd frontend
 npm install
+npm run dev
+```
+
+### 4. Connect
+- Open `http://localhost:5173`.
+- Connect MetaMask to `Localhost 8545`.
+- Import a test account using a private key from the `npx hardhat node` output.
+- You are ready to publish and view notices!
+
+## 📖 Documentation
+- [System Architecture](./docs/ARCHITECTURE.md)
+- [Frontend Guide](./frontend/README.md)
+- [Blockchain Guide](./blockchain/README.md)
