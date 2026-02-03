@@ -1,40 +1,26 @@
-import { Calendar, Hash } from "lucide-react";
+import React from "react";
+import { SearchX } from "lucide-react";
+import NoticeCard from "../NoticeCard";
 
 export default function NoticeFeed({ filteredNotices, searchQuery }) {
   return (
-    <div className={filteredNotices ? "lg:col-span-3" : "lg:col-span-2"}>
-      <div className="space-y-4">
+    <div className="flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
         {filteredNotices && filteredNotices.length > 0 ? (
           filteredNotices.map((notice) => (
-            <div
-              key={notice.id}
-              className="bg-slate-900/50 border border-slate-800 p-5 rounded-xl flex justify-between items-start hover:border-slate-700 transition-all"
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="bg-blue-900/40 text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter border border-blue-800">
-                    ID: #{notice.id}
-                  </span>
-                  <span className="text-slate-500 text-xs flex items-center gap-1">
-                    <Calendar size={12} /> {notice.date}
-                  </span>
-                </div>
-                <h4 className="text-lg font-semibold text-white mb-1">
-                  {notice.title}
-                </h4>
-                <p className="text-xs text-slate-500 font-mono">
-                  HASH: {notice.hash}
-                </p>
-              </div>
-              <button className="bg-slate-800 p-2 rounded-lg hover:bg-slate-700 text-blue-400">
-                <Hash size={18} />
-              </button>
-            </div>
+            <NoticeCard key={notice.id} {...notice} />
           ))
         ) : (
-          <div className="text-center py-12 text-slate-500">
-            <p>No notices found</p>
-            {searchQuery && <p className="text-sm mt-2">Try a different search</p>}
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-center border border-dashed border-slate-800 rounded-3xl bg-slate-900/30">
+            <div className="bg-slate-800/50 p-4 rounded-full mb-4">
+              <SearchX size={40} className="text-slate-500" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">No notices found</h3>
+            <p className="text-slate-400 max-w-md mx-auto">
+              {searchQuery
+                ? `We couldn't find any notices matching "${searchQuery}". Try a different keyword or ID.`
+                : "There are currently no notices published on the blockchain ledger."}
+            </p>
           </div>
         )}
       </div>
