@@ -113,8 +113,10 @@ servers...
 
 ## 10. Contributors
 
--   Your Name\
--   Team Member
+-   diksha singh
+-   nandani rana
+-   mehak sharma
+-   yukta lohani
 
 ## 11. License
 
