@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Loader2, PenTool, Type, FileText } from "lucide-react";
+import { Loader2, PenTool, Type, FileText, CheckCircle } from "lucide-react";
 
-export default function AdminPanel({ onPublish, loading }) {
+export default function AdminPanel({ onPublish, loading, proposals, onConfirm }) {
   const [formData, setFormData] = useState({ title: "", content: "" });
 
   const handleSubmit = async (e) => {
@@ -11,8 +11,9 @@ export default function AdminPanel({ onPublish, loading }) {
   };
 
   return (
-    <aside className="lg:col-span-4 transition-all duration-300">
-      <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-6 rounded-2xl sticky top-24 shadow-2xl">
+    <aside className="lg:col-span-4 transition-all duration-300 space-y-6">
+      {/* Submit New Proposal */}
+      <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-6 rounded-2xl shadow-2xl">
         <div className="mb-6 pb-4 border-b border-slate-800">
           <h3 className="text-white font-bold text-xl flex items-center gap-3">
             <span className="p-2 bg-blue-500/10 rounded-lg text-blue-500 border border-blue-500/20">
@@ -21,7 +22,7 @@ export default function AdminPanel({ onPublish, loading }) {
             Issue New Notice
           </h3>
           <p className="text-slate-400 text-sm mt-2 ml-1">
-            Publish official announcements to the blockchain ledger.
+            Submit a proposal for a new notice. Requires admin approval.
           </p>
         </div>
 
@@ -69,16 +70,53 @@ export default function AdminPanel({ onPublish, loading }) {
             {loading ? (
               <>
                 <Loader2 className="animate-spin" size={20} />
-                <span>Publishing to Blockchain...</span>
+                <span>Submitting Proposal...</span>
               </>
             ) : (
               <>
-                <span className="group-hover:scale-105 transition-transform">Publish Notice</span>
+                <span className="group-hover:scale-105 transition-transform">Submit Proposal</span>
               </>
             )}
           </button>
         </form>
       </div>
+
+      {/* Pending Proposals List */}
+      {proposals && proposals.length > 0 && (
+        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 p-6 rounded-2xl shadow-2xl animate-fadeIn">
+          <div className="mb-4 pb-2 border-b border-slate-800">
+             <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <CheckCircle size={18} className="text-yellow-500" />
+                Pending Approvals
+             </h3>
+          </div>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+             {proposals.map(p => (
+                 <div key={p.id} className="bg-slate-950/50 p-4 rounded-xl border border-slate-800 hover:border-blue-500/20 transition-colors">
+                     <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-bold text-white text-sm">{p.title}</h4>
+                        <span className="text-[10px] text-slate-500 font-mono">#{p.id}</span>
+                     </div>
+                     <p className="text-xs text-slate-400 mb-3 font-mono truncate">{p.content}</p>
+
+                     <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-800/50">
+                         <div className="flex items-center gap-2 text-xs text-blue-300">
+                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                             Approvals: <span className="font-bold">{p.approvalCount}</span>
+                         </div>
+                         <button
+                             onClick={() => onConfirm(p.id)}
+                             disabled={loading}
+                             className="text-xs bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors font-semibold shadow-lg shadow-green-900/20"
+                         >
+                             Confirm
+                         </button>
+                     </div>
+                 </div>
+             ))}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

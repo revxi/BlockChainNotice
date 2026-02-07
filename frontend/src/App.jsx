@@ -8,6 +8,7 @@ import Login from "./components/Login";
 export default function App() {
   const { account, contract, connectWallet } = useWeb3();
   const [notices, setNotices] = useState([]);
+  const [proposals, setProposals] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
   const [isPublishing, setIsPublishing] = useState(false);
@@ -18,11 +19,11 @@ export default function App() {
         const count = await contract.getNoticeCount();
         const temp = [];
         for (let i = 0; i < count; i++) {
-          const n = await contract.allNotices(i);
+          const n = await contract.getNotice(i);
           temp.push({
             id: n.id.toString(),
             title: n.title,
-            hash: n.ipfsHash,
+            hash: n.content, // Map content to hash for NoticeCard
             date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
           });
         }
@@ -31,7 +32,34 @@ export default function App() {
     }
   };
 
-  useEffect(() => { fetchNotices(); }, [contract]);
+  const fetchProposals = async () => {
+    if (contract && userRole === "admin") {
+      try {
+        const props = await contract.getProposals();
+        const temp = [];
+        for (const p of props) {
+            if (!p.executed) {
+                temp.push({
+                    id: p.id.toString(),
+                    author: p.author,
+                    title: p.title,
+                    content: p.content,
+                    approvalCount: p.approvalCount.toString(),
+                    timestamp: new Date(Number(p.timestamp) * 1000).toLocaleDateString()
+                });
+            }
+        }
+        setProposals(temp.reverse());
+      } catch (err) { console.error("Fetch proposals error:", err); }
+    }
+  };
+
+  useEffect(() => {
+      if (contract) {
+          fetchNotices();
+          if (userRole === "admin") fetchProposals();
+      }
+  }, [contract, userRole]);
 
   // Search Logic (ID, Date, or Title)
   const filteredNotices = useMemo(() => {
@@ -50,11 +78,29 @@ export default function App() {
     try {
       // Simulate IPFS Hashing of content
       const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
-      const tx = await contract.issueNotice(mockHash, formData.title);
+      const tx = await contract.submitNotice(formData.title, mockHash);
       await tx.wait();
-      fetchNotices();
-    } catch (err) { alert("Only the admin wallet can publish notices!"); }
+      fetchProposals();
+      alert("Proposal submitted for approval!");
+    } catch (err) {
+        console.error(err);
+        alert("Error submitting proposal!");
+    }
     setIsPublishing(false);
+  };
+
+  const handleConfirm = async (proposalId) => {
+      if (!contract) return;
+      try {
+          const tx = await contract.confirmNotice(proposalId);
+          await tx.wait();
+          fetchProposals();
+          fetchNotices();
+          alert("Proposal confirmed!");
+      } catch (err) {
+          console.error(err);
+          alert("Error confirming proposal: " + (err.reason || err.message));
+      }
   };
 
   if (!userRole) {
@@ -128,7 +174,12 @@ export default function App() {
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           {/* Admin Panel - Only visible when logged in as admin */}
           {userRole === "admin" && (
-             <AdminPanel onPublish={handlePublish} loading={isPublishing} />
+             <AdminPanel
+                onPublish={handlePublish}
+                loading={isPublishing}
+                proposals={proposals}
+                onConfirm={handleConfirm}
+             />
           )}
 
           {/* Notice Feed - Spans full width if not admin, else takes remaining space */}
