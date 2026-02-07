@@ -5,7 +5,7 @@ import ABI from "../utils/abi.json";
 const Web3Context = createContext();
 
 // Contract address - update this after deployment
-const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a"; // Localhost default
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export const Web3Provider = ({ children }) => {
   const [account, setAccount] = useState(null);
@@ -25,10 +25,60 @@ export const Web3Provider = ({ children }) => {
           method: "eth_accounts",
         });
         if (accounts.length > 0) {
+          // Verify network before connecting
+          const chainId = await window.ethereum.request({ method: "eth_chainId" });
+          const targetChainId = import.meta.env.VITE_CHAIN_ID || "0x89";
+
+          if (chainId !== targetChainId) {
+            // Optionally prompt switch here, or just let connectWallet handle it when called explicitly
+            // For now, we'll just connect and let the user switch if they try to interact,
+            // OR we can force switch. Let's force switch in connectWallet.
+          }
           connectWallet();
         }
       } catch (error) {
         console.error("Error checking connection:", error);
+      }
+    }
+  };
+
+  const switchNetwork = async () => {
+    const CHAIN_ID = import.meta.env.VITE_CHAIN_ID || "0x89"; // Default to Polygon
+    const RPC_URL = import.meta.env.VITE_RPC_URL || "https://polygon-rpc.com";
+    const CHAIN_NAME = import.meta.env.VITE_CHAIN_NAME || "Polygon Mainnet";
+    const NATIVE_CURRENCY_SYMBOL = import.meta.env.VITE_NATIVE_CURRENCY_SYMBOL || "MATIC";
+    const BLOCK_EXPLORER_URL = import.meta.env.VITE_BLOCK_EXPLORER_URL || "https://polygonscan.com/";
+
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: CHAIN_ID }],
+      });
+    } catch (switchError) {
+      // This error code indicates that the chain has not been added to MetaMask.
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: CHAIN_ID,
+                chainName: CHAIN_NAME,
+                rpcUrls: [RPC_URL],
+                nativeCurrency: {
+                  name: NATIVE_CURRENCY_SYMBOL,
+                  symbol: NATIVE_CURRENCY_SYMBOL,
+                  decimals: 18,
+                },
+                blockExplorerUrls: [BLOCK_EXPLORER_URL],
+              },
+            ],
+          });
+        } catch (addError) {
+          console.error("Error adding network:", addError);
+        }
+      } else {
+        console.error("Error switching network:", switchError);
       }
     }
   };
@@ -40,6 +90,8 @@ export const Web3Provider = ({ children }) => {
     }
 
     try {
+      await switchNetwork();
+
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts",
       });
