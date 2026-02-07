@@ -1,0 +1,12 @@
+
+> backend@1.0.0 start
+> node index.js
+
+[dotenv@17.2.4] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+Backend server running on http://localhost:5000
+Missing Pinata API keys. Using mock IPFS hash.
+Missing Pinata API keys. Using mock IPFS hash.
+Missing Pinata API keys. Using mock IPFS hash.
+Missing Pinata API keys. Using mock IPFS hash.
+Missing Pinata API keys. Using mock IPFS hash.
+Missing Pinata API keys. Using mock IPFS hash.

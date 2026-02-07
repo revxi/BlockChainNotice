@@ -38,6 +38,7 @@ export default function NoticeCard({ id, title, hash, date }) {
         <button
           className="w-full mt-auto flex items-center justify-center gap-2 bg-slate-800/50 hover:bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 group-hover:shadow-lg border border-white/5 group-hover:border-blue-500/50"
           aria-label={`View notice ${id} on IPFS`}
+          onClick={() => window.open(`https://gateway.pinata.cloud/ipfs/${hash}`, "_blank")}
         >
           View on IPFS
           <ArrowUpRight size={16} />

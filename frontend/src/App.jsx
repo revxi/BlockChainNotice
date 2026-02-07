@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import axios from "axios";
 import { useWeb3 } from "./context/Web3Context";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
@@ -18,7 +19,7 @@ export default function App() {
         const count = await contract.getNoticeCount();
         const temp = [];
         for (let i = 0; i < count; i++) {
-          const n = await contract.allNotices(i);
+          const n = await contract.notices(i);
           temp.push({
             id: n.id.toString(),
             title: n.title,
@@ -48,12 +49,22 @@ export default function App() {
 
     setIsPublishing(true);
     try {
-      // Simulate IPFS Hashing of content
-      const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
-      const tx = await contract.issueNotice(mockHash, formData.title);
+      // Upload to Backend (Pinata)
+      const response = await axios.post('http://localhost:5000/api/upload', {
+        title: formData.title,
+        content: formData.content
+      });
+
+      const ipfsHash = response.data.ipfsHash;
+
+      // Issue Notice on Blockchain
+      const tx = await contract.issueNotice(ipfsHash, formData.title);
       await tx.wait();
       fetchNotices();
-    } catch (err) { alert("Only the admin wallet can publish notices!"); }
+    } catch (err) {
+      console.error(err);
+      alert("Error publishing notice: " + (err.response?.data?.error || err.message));
+    }
     setIsPublishing(false);
   };
 

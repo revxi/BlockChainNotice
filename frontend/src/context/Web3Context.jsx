@@ -5,7 +5,7 @@ import ABI from "../utils/abi.json";
 const Web3Context = createContext();
 
 // Contract address - update this after deployment
-const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a"; // Localhost default
+const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Localhost default
 
 export const Web3Provider = ({ children }) => {
   const [account, setAccount] = useState(null);
