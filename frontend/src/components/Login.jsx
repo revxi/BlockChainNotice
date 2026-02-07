@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useWeb3 } from "../context/Web3Context";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 
 // For demo purposes, we assume the first Hardhat account is the admin.
@@ -7,14 +8,15 @@ import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide
 const ADMIN_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".toLowerCase();
 
 export default function Login({ onLogin }) {
-  const { connectWallet, account } = useWeb3();
+  const { connect } = useConnect();
+  const { address: account } = useAccount();
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
 
   const handleAdminLogin = async () => {
     setError("");
     if (!account) {
-      await connectWallet();
+      connect({ connector: injected() });
       return;
     }
 
