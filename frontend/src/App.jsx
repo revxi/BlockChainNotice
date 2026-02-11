@@ -7,7 +7,7 @@ import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 export default function App() {
   const { address: account, isConnected } = useAccount();
