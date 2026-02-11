@@ -15,6 +15,8 @@ contract BlockNotice {
     Notice[] public notices;
     mapping(address => uint256[]) public userNotices;
 
+    error NoticeDoesNotExist(uint256 id);
+
     event NoticePosted(
         uint256 indexed noticeId,
         address indexed author,
@@ -46,7 +48,7 @@ contract BlockNotice {
         view
         returns (Notice memory)
     {
-        require(_id < notices.length, "Notice does not exist");
+        if (_id >= notices.length) revert NoticeDoesNotExist(_id);
         return notices[_id];
     }
 
