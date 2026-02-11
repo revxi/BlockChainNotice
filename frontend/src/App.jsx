@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { injected } from "wagmi/connectors";
 import ABI from "./utils/abi.json";
@@ -14,6 +14,26 @@ export default function App() {
   const { connect } = useConnect();
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const fetchNotices = async () => {
+    if (contract) {
+      try {
+        const count = await contract.getNoticeCount();
+        const temp = [];
+        for (let i = 0; i < count; i++) {
+          const n = await contract.notices(i);
+          temp.push({
+            id: n.id.toString(),
+            title: n.title,
+            hash: n.content,
+            date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+          });
+        }
+        setNotices(temp.reverse());
+      } catch (err) { console.error("Fetch error:", err); }
+    }
+  };
 
   // Write Contract Hook
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
@@ -32,13 +52,6 @@ export default function App() {
     functionName: 'getNoticeCount',
   });
 
-  // Refetch notices when transaction is confirmed
-  React.useEffect(() => {
-    if (isConfirmed) {
-      refetchCount();
-    }
-  }, [isConfirmed, refetchCount]);
-
   // Prepare calls for all notices
   const noticeContracts = useMemo(() => {
     if (!noticeCount) return [];
@@ -52,9 +65,22 @@ export default function App() {
   }, [noticeCount]);
 
   // Read all notices in parallel
-  const { data: noticesData } = useReadContracts({
+  const { data: noticesData, refetch: refetchNotices } = useReadContracts({
     contracts: noticeContracts,
   });
+
+  // Memoized fetch function for notices
+  const fetchNotices = useCallback(() => {
+    refetchCount();
+    refetchNotices();
+  }, [refetchCount, refetchNotices]);
+
+  // Refetch notices when transaction is confirmed
+  useEffect(() => {
+    if (isConfirmed) {
+      fetchNotices();
+    }
+  }, [isConfirmed, fetchNotices]);
 
   // Process notices data
   const notices = useMemo(() => {
@@ -80,13 +106,19 @@ export default function App() {
     );
   }, [notices, searchQuery]);
 
-  const handlePublish = async (formData) => {
+  const handlePublish = useCallback(async (formData) => {
     if (!account) return alert("Connect Wallet!");
     if (userRole !== "admin") return alert("Unauthorized: Admins only.");
 
     try {
       // Simulate IPFS Hashing of content
       const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
+      const tx = await contract.postNotice(formData.title, mockHash);
+      await tx.wait();
+      fetchNotices();
+    } catch (err) { alert("Only the admin wallet can publish notices!"); }
+    setIsPublishing(false);
+  };
 
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
@@ -98,7 +130,7 @@ export default function App() {
       console.error("Publish error:", err);
       alert("Error publishing notice (Check console for details)");
     }
-  };
+  }, [account, userRole, writeContractAsync]);
 
   if (!userRole) {
     return <Login onLogin={setUserRole} />;
