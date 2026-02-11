@@ -14,6 +14,26 @@ export default function App() {
   const { connect } = useConnect();
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const fetchNotices = async () => {
+    if (contract) {
+      try {
+        const count = await contract.getNoticeCount();
+        const temp = [];
+        for (let i = 0; i < count; i++) {
+          const n = await contract.notices(i);
+          temp.push({
+            id: n.id.toString(),
+            title: n.title,
+            hash: n.content,
+            date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+          });
+        }
+        setNotices(temp.reverse());
+      } catch (err) { console.error("Fetch error:", err); }
+    }
+  };
 
   // Write Contract Hook
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
@@ -93,6 +113,12 @@ export default function App() {
     try {
       // Simulate IPFS Hashing of content
       const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
+      const tx = await contract.postNotice(formData.title, mockHash);
+      await tx.wait();
+      fetchNotices();
+    } catch (err) { alert("Only the admin wallet can publish notices!"); }
+    setIsPublishing(false);
+  };
 
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
