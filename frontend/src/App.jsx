@@ -1,75 +1,65 @@
-import React, { useState, useMemo } from "react";
-import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { injected } from "wagmi/connectors";
-import ABI from "./utils/abi.json";
+import React, { useState, useEffect, useMemo } from "react";
+import { useWeb3 } from "./context/Web3Context";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
-
 export default function App() {
-  const { address: account, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { account, contract, connectWallet } = useWeb3();
+  const [notices, setNotices] = useState([]);
+  const [proposals, setProposals] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  // Write Contract Hook
-  const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
-
-  // Wait for Transaction Hook
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  const isPublishing = isWritePending || isConfirming;
-
-  // Read Notice Count
-  const { data: noticeCount, refetch: refetchCount } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: 'getNoticeCount',
-  });
-
-  // Refetch notices when transaction is confirmed
-  React.useEffect(() => {
-    if (isConfirmed) {
-      refetchCount();
+  const fetchNotices = async () => {
+    if (contract) {
+      try {
+        const count = await contract.getNoticeCount();
+        const temp = [];
+        for (let i = 0; i < count; i++) {
+          const n = await contract.getNotice(i);
+          temp.push({
+            id: n.id.toString(),
+            title: n.title,
+            hash: n.content, // Map content to hash for NoticeCard
+            date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+          });
+        }
+        setNotices(temp.reverse());
+      } catch (err) { console.error("Fetch error:", err); }
     }
-  }, [isConfirmed, refetchCount]);
+  };
 
-  // Prepare calls for all notices
-  const noticeContracts = useMemo(() => {
-    if (!noticeCount) return [];
-    const count = Number(noticeCount);
-    return Array.from({ length: count }, (_, i) => ({
-      address: CONTRACT_ADDRESS,
-      abi: ABI,
-      functionName: 'getNotice',
-      args: [BigInt(i)],
-    }));
-  }, [noticeCount]);
+  const fetchProposals = async () => {
+    if (contract && userRole === "admin") {
+      try {
+        const props = await contract.getProposals();
+        const temp = [];
+        for (const p of props) {
+            if (!p.executed) {
+                temp.push({
+                    id: p.id.toString(),
+                    author: p.author,
+                    title: p.title,
+                    content: p.content,
+                    approvalCount: p.approvalCount.toString(),
+                    timestamp: new Date(Number(p.timestamp) * 1000).toLocaleDateString()
+                });
+            }
+        }
+        setProposals(temp.reverse());
+      } catch (err) { console.error("Fetch proposals error:", err); }
+    }
+  };
 
-  // Read all notices in parallel
-  const { data: noticesData } = useReadContracts({
-    contracts: noticeContracts,
-  });
-
-  // Process notices data
-  const notices = useMemo(() => {
-    if (!noticesData) return [];
-    return noticesData
-      .map((result) => result.result)
-      .filter((n) => n)
-      .map((n) => ({
-        id: n.id.toString(),
-        title: n.title,
-        hash: n.content, // Using 'content' field as hash
-        date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
-      }))
-      .reverse();
-  }, [noticesData]);
+  useEffect(() => {
+      if (contract) {
+          fetchNotices();
+          if (userRole === "admin") fetchProposals();
+      }
+  }, [contract, userRole]);
 
   // Search Logic (ID, Date, or Title)
   const filteredNotices = useMemo(() => {
@@ -81,23 +71,36 @@ export default function App() {
   }, [notices, searchQuery]);
 
   const handlePublish = async (formData) => {
-    if (!account) return alert("Connect Wallet!");
+    if (!contract) return alert("Connect Wallet!");
     if (userRole !== "admin") return alert("Unauthorized: Admins only.");
 
+    setIsPublishing(true);
     try {
       // Simulate IPFS Hashing of content
       const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
-
-      await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'postNotice',
-        args: [formData.title, mockHash],
-      });
+      const tx = await contract.submitNotice(formData.title, mockHash);
+      await tx.wait();
+      fetchProposals();
+      alert("Proposal submitted for approval!");
     } catch (err) {
-      console.error("Publish error:", err);
-      alert("Error publishing notice (Check console for details)");
+        console.error(err);
+        alert("Error submitting proposal!");
     }
+    setIsPublishing(false);
+  };
+
+  const handleConfirm = async (proposalId) => {
+      if (!contract) return;
+      try {
+          const tx = await contract.confirmNotice(proposalId);
+          await tx.wait();
+          fetchProposals();
+          fetchNotices();
+          alert("Proposal confirmed!");
+      } catch (err) {
+          console.error(err);
+          alert("Error confirming proposal: " + (err.reason || err.message));
+      }
   };
 
   if (!userRole) {
@@ -125,7 +128,7 @@ export default function App() {
           </div>
 
           <button 
-            onClick={() => connect({ connector: injected() })}
+            onClick={connectWallet}
             className="relative overflow-hidden bg-slate-800 hover:bg-slate-700 border border-slate-700 px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 text-white flex items-center gap-2 group hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:border-blue-500/50"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -171,7 +174,12 @@ export default function App() {
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           {/* Admin Panel - Only visible when logged in as admin */}
           {userRole === "admin" && (
-             <AdminPanel onPublish={handlePublish} loading={isPublishing} />
+             <AdminPanel
+                onPublish={handlePublish}
+                loading={isPublishing}
+                proposals={proposals}
+                onConfirm={handleConfirm}
+             />
           )}
 
           {/* Notice Feed - Spans full width if not admin, else takes remaining space */}
