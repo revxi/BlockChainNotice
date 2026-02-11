@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useConnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { injected } from "wagmi/connectors";
 import ABI from "./utils/abi.json";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
@@ -10,7 +10,7 @@ import Login from "./components/Login";
 const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function App() {
-  const { address: account, isConnected } = useAccount();
+  const { address: account } = useAccount();
   const { connect } = useConnect();
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
