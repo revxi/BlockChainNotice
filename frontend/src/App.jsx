@@ -18,11 +18,11 @@ export default function App() {
         const count = await contract.getNoticeCount();
         const temp = [];
         for (let i = 0; i < count; i++) {
-          const n = await contract.allNotices(i);
+          const n = await contract.notices(i);
           temp.push({
             id: n.id.toString(),
             title: n.title,
-            hash: n.ipfsHash,
+            hash: n.content,
             date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
           });
         }
@@ -50,7 +50,7 @@ export default function App() {
     try {
       // Simulate IPFS Hashing of content
       const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
-      const tx = await contract.issueNotice(mockHash, formData.title);
+      const tx = await contract.postNotice(formData.title, mockHash);
       await tx.wait();
       fetchNotices();
     } catch (err) { alert("Only the admin wallet can publish notices!"); }
