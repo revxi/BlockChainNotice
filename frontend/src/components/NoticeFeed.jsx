@@ -1,6 +1,6 @@
 import React from "react";
 import { SearchX } from "lucide-react";
-import NoticeCard from "../NoticeCard";
+import NoticeCard from "./NoticeCard";
 
 export default function NoticeFeed({ filteredNotices, searchQuery }) {
   return (
