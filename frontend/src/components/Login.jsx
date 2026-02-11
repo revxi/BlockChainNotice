@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { useWeb3 } from "../context/Web3Context";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 
 export default function Login({ onLogin }) {
   const { connectWallet, account, contract } = useWeb3();
+  const { connect } = useConnect();
+  const { address: account } = useAccount();
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
 
@@ -13,6 +16,8 @@ export default function Login({ onLogin }) {
     // Ensure wallet is connected
     if (!account || !contract) {
       await connectWallet();
+    if (!account) {
+      connect({ connector: injected() });
       return;
     }
 
