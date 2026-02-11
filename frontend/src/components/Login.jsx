@@ -1,27 +1,38 @@
 import React, { useState } from "react";
-import { useWeb3 } from "../context/Web3Context";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 
-// For demo purposes, we assume the first Hardhat account is the admin.
-// In production, this should be fetched from the contract (e.g., owner()).
-const ADMIN_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".toLowerCase();
-
 export default function Login({ onLogin }) {
-  const { connectWallet, account } = useWeb3();
+  const { connectWallet, account, contract } = useWeb3();
+  const { connect } = useConnect();
+  const { address: account } = useAccount();
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
 
   const handleAdminLogin = async () => {
     setError("");
-    if (!account) {
+
+    // Ensure wallet is connected
+    if (!account || !contract) {
       await connectWallet();
+    if (!account) {
+      connect({ connector: injected() });
       return;
     }
 
-    if (account.toLowerCase() === ADMIN_ADDRESS) {
-      onLogin("admin");
-    } else {
-      setError("Unauthorized: Connected wallet is not the admin.");
+    try {
+      // Fetch the admin address directly from the smart contract
+      const adminAddress = await contract.admin();
+
+      if (account.toLowerCase() === adminAddress.toLowerCase()) {
+        onLogin("admin");
+      } else {
+        setError("Unauthorized: Connected wallet is not the admin.");
+      }
+    } catch (err) {
+      console.error("Error verifying admin status:", err);
+      setError("Error verifying admin status. Please try again.");
     }
   };
 
