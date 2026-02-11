@@ -2,6 +2,8 @@
 pragma solidity ^0.8.19;
 
 contract BlockNotice {
+    address public owner;
+
     struct Notice {
         uint256 id;
         address author;
@@ -20,7 +22,16 @@ contract BlockNotice {
         uint256 timestamp
     );
 
-    function postNotice(string memory _title, string memory _content) public {
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
+
+    function postNotice(string memory _title, string memory _content) public onlyOwner {
         uint256 noticeId = notices.length;
         notices.push(
             Notice(noticeId, msg.sender, _title, _content, block.timestamp)
