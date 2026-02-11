@@ -16,16 +16,17 @@ export default function App() {
     if (contract) {
       try {
         const count = await contract.getNoticeCount();
-        const temp = [];
+        const promises = [];
         for (let i = 0; i < count; i++) {
-          const n = await contract.allNotices(i);
-          temp.push({
-            id: n.id.toString(),
-            title: n.title,
-            hash: n.ipfsHash,
-            date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
-          });
+          promises.push(contract.allNotices(i));
         }
+        const noticesData = await Promise.all(promises);
+        const temp = noticesData.map((n) => ({
+          id: n.id.toString(),
+          title: n.title,
+          hash: n.ipfsHash,
+          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+        }));
         setNotices(temp.reverse());
       } catch (err) { console.error("Fetch error:", err); }
     }
