@@ -1,5 +1,3 @@
-import React, { useState, useMemo } from "react";
-import { useAccount, useConnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { injected } from "wagmi/connectors";
@@ -16,34 +14,6 @@ export default function App() {
   const { connect } = useConnect();
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
-  const [isPublishing, setIsPublishing] = useState(false);
-
-  const fetchNotices = async () => {
-    if (contract) {
-      try {
-        const count = await contract.getNoticeCount();
-        const promises = [];
-        for (let i = 0; i < count; i++) {
-          promises.push(contract.allNotices(i));
-          const n = await contract.notices(i);
-          temp.push({
-            id: n.id.toString(),
-            title: n.title,
-            hash: n.content,
-            date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
-          });
-        }
-        const noticesData = await Promise.all(promises);
-        const temp = noticesData.map((n) => ({
-          id: n.id.toString(),
-          title: n.title,
-          hash: n.ipfsHash,
-          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
-        }));
-        setNotices(temp.reverse());
-      } catch (err) { console.error("Fetch error:", err); }
-    }
-  };
 
   // Write Contract Hook
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
