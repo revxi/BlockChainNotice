@@ -1,13 +1,16 @@
 import { http, createConfig } from 'wagmi'
-import { hardhat } from 'wagmi/chains'
+import { mainnet, sepolia, polygon, polygonMumbai } from 'wagmi/chains'
 import { injected } from 'wagmi/connectors'
 
 export const config = createConfig({
-  chains: [hardhat],
+  chains: [mainnet, sepolia, polygon, polygonMumbai],
   connectors: [
     injected(),
   ],
   transports: {
-    [hardhat.id]: http(),
+    [mainnet.id]: http(),
+    [sepolia.id]: http(),
+    [polygon.id]: http(),
+    [polygonMumbai.id]: http(),
   },
 })
