@@ -11,6 +11,16 @@ const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
+
+  const findInjectedConnector = (connectors) =>
+    connectors.find(
+      (c) =>
+        c.id === "injected" ||
+        c.id === "metaMask" ||
+        c.id === "metamask" ||
+        (c.name && /meta/i.test(c.name)) ||
+        /meta/i.test(c.id)
+    );
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 
@@ -131,7 +141,7 @@ export default function App() {
 
           <button 
             onClick={() => {
-              const injectedConnector = connectors.find((c) => c.id === "injected");
+              const injectedConnector = findInjectedConnector(connectors);
               if (injectedConnector) {
                 connect({ connector: injectedConnector });
               }

@@ -15,6 +15,17 @@ export default function Login({ onLogin }) {
     }
   }, [account, activeTab, onLogin, isPending]);
 
+  // Helper to find an injected/MetaMask connector robustly
+  const findInjectedConnector = (connectors) =>
+    connectors.find(
+      (c) =>
+        c.id === "injected" ||
+        c.id === "metaMask" ||
+        c.id === "metamask" ||
+        (c.name && /meta/i.test(c.name)) ||
+        /meta/i.test(c.id)
+    );
+
   const handleAdminLogin = async () => {
     setError("");
 
@@ -25,8 +36,8 @@ export default function Login({ onLogin }) {
     }
 
     // Get the injected connector (MetaMask, etc.)
-    const injectedConnector = connectors.find((c) => c.id === "injected");
-    
+    const injectedConnector = findInjectedConnector(connectors);
+
     if (!injectedConnector) {
       setError("MetaMask or Web3 wallet extension not found. Please install it.");
       return;
