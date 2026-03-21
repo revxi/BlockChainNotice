@@ -93,24 +93,18 @@ export default function App() {
     try {
       // Simulate IPFS Hashing of content
       const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
-      const tx = await contract.postNotice(formData.title, mockHash);
-      await tx.wait();
-      fetchNotices();
-    } catch (err) { alert("Only the admin wallet can publish notices!"); }
-    setIsPublishing(false);
-  };
-
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
         functionName: 'postNotice',
         args: [formData.title, mockHash],
       });
+      fetchNotices();
     } catch (err) {
       console.error("Publish error:", err);
       alert("Error publishing notice (Check console for details)");
     }
-  }, [account, userRole, writeContractAsync]);
+  }, [account, userRole, writeContractAsync, fetchNotices]);
 
   if (!userRole) {
     return <Login onLogin={setUserRole} />;
