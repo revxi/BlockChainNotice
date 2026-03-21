@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
@@ -8,18 +8,34 @@ export default function Login({ onLogin }) {
   const { connect } = useConnect();
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  // Auto-proceed to admin panel once wallet is connected
+  useEffect(() => {
+    if (account && activeTab === "admin" && !isConnecting) {
+      onLogin("admin");
+    }
+  }, [account, activeTab, onLogin, isConnecting]);
 
   const handleAdminLogin = async () => {
     setError("");
 
     // Ensure wallet is connected
     if (!account) {
-      connect({ connector: injected() });
+      try {
+        setIsConnecting(true);
+        await connect({ connector: injected() });
+        // After connection, useEffect will handle the onLogin call
+      } catch (err) {
+        console.error("Connection error:", err);
+        setError("Failed to connect wallet. Please try again.");
+      } finally {
+        setIsConnecting(false);
+      }
       return;
     }
 
-    // For now, allow any connected wallet as admin
-    // TODO: Implement actual admin verification via smart contract
+    // Wallet is already connected, proceed to admin panel
     onLogin("admin");
   };
 
