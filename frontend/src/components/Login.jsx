@@ -1,42 +1,44 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
-import { injected } from "wagmi/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
-  const { connect } = useConnect();
+  const { connectors, connect, isPending } = useConnect();
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
 
   // Auto-proceed to admin panel once wallet is connected
   useEffect(() => {
-    if (account && activeTab === "admin" && !isConnecting) {
+    if (account && activeTab === "admin" && !isPending) {
       onLogin("admin");
     }
-  }, [account, activeTab, onLogin, isConnecting]);
+  }, [account, activeTab, onLogin, isPending]);
 
   const handleAdminLogin = async () => {
     setError("");
 
-    // Ensure wallet is connected
-    if (!account) {
-      try {
-        setIsConnecting(true);
-        await connect({ connector: injected() });
-        // After connection, useEffect will handle the onLogin call
-      } catch (err) {
-        console.error("Connection error:", err);
-        setError("Failed to connect wallet. Please try again.");
-      } finally {
-        setIsConnecting(false);
-      }
+    // If already connected, proceed
+    if (account) {
+      onLogin("admin");
       return;
     }
 
-    // Wallet is already connected, proceed to admin panel
-    onLogin("admin");
+    // Get the injected connector (MetaMask, etc.)
+    const injectedConnector = connectors.find((c) => c.id === "injected");
+    
+    if (!injectedConnector) {
+      setError("MetaMask or Web3 wallet extension not found. Please install it.");
+      return;
+    }
+
+    try {
+      connect({ connector: injectedConnector });
+      // After connection, useEffect will handle the onLogin call
+    } catch (err) {
+      console.error("Connection error:", err);
+      setError("Failed to connect wallet. Please try again.");
+    }
   };
 
   return (

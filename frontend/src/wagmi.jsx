@@ -5,7 +5,9 @@ import { injected } from 'wagmi/connectors'
 export const config = createConfig({
   chains: [mainnet, sepolia, polygon, polygonMumbai],
   connectors: [
-    injected(),
+    injected({
+      target: 'metaMask',
+    }),
   ],
   transports: {
     [mainnet.id]: http(),
