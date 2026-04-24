@@ -16,15 +16,19 @@ export default function Login({ onLogin }) {
   }, [account, activeTab, onLogin, isPending]);
 
   // Helper to find an injected/MetaMask connector robustly
-  const findInjectedConnector = (connectors) =>
-    connectors.find(
+  const findInjectedConnector = (connectors) => {
+    const found = connectors.find(
       (c) =>
+        c.type === "injected" ||
+        c.type === "metaMask" ||
         c.id === "injected" ||
         c.id === "metaMask" ||
         c.id === "metamask" ||
-        (c.name && /meta/i.test(c.name)) ||
-        /meta/i.test(c.id)
+        (typeof c.name === "string" && /meta/i.test(c.name)) ||
+        (typeof c.id === "string" && /meta/i.test(c.id))
     );
+    return found || connectors[0];
+  };
 
   const handleAdminLogin = async () => {
     setError("");

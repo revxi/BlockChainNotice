@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useConnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
@@ -12,15 +12,19 @@ export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
 
-  const findInjectedConnector = (connectors) =>
-    connectors.find(
+  const findInjectedConnector = (connectors) => {
+    const found = connectors.find(
       (c) =>
+        c.type === "injected" ||
+        c.type === "metaMask" ||
         c.id === "injected" ||
         c.id === "metaMask" ||
         c.id === "metamask" ||
-        (c.name && /meta/i.test(c.name)) ||
-        /meta/i.test(c.id)
+        (typeof c.name === "string" && /meta/i.test(c.name)) ||
+        (typeof c.id === "string" && /meta/i.test(c.id))
     );
+    return found || connectors[0];
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import NoticeCard from './NoticeCard';
+import NoticeCard from "./components/NoticeCard";
 import { describe, it, expect } from 'vitest';
 
 describe('NoticeCard', () => {
