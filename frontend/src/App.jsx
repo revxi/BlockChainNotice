@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useConnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
+import { findInjectedConnector } from "./utils/connectors";
+import { generateIPFSHash } from "./utils/ipfs";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
@@ -12,15 +14,6 @@ export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
 
-  const findInjectedConnector = (connectors) =>
-    connectors.find(
-      (c) =>
-        c.id === "injected" ||
-        c.id === "metaMask" ||
-        c.id === "metamask" ||
-        (c.name && /meta/i.test(c.name)) ||
-        /meta/i.test(c.id)
-    );
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 
@@ -34,11 +27,18 @@ export default function App() {
 
   const isPublishing = isWritePending || isConfirming;
 
-  // Read Notice Count
-  const { data: noticeCount, refetch: refetchCount } = useReadContract({
+  // Read all notices in a single call
+  const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'getNoticeCount',
+  });
+
+  // Read Admin Address
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'admin',
   });
 
   // Prepare calls for all notices
@@ -56,13 +56,8 @@ export default function App() {
   // Read all notices in parallel
   const { data: noticesData, refetch: refetchNotices } = useReadContracts({
     contracts: noticeContracts,
+    functionName: 'getAllNotices',
   });
-
-  // Memoized fetch function for notices
-  const fetchNotices = useCallback(() => {
-    refetchCount();
-    refetchNotices();
-  }, [refetchCount, refetchNotices]);
 
   // Refetch notices when transaction is confirmed
   useEffect(() => {
@@ -74,9 +69,7 @@ export default function App() {
   // Process notices data
   const notices = useMemo(() => {
     if (!noticesData) return [];
-    return noticesData
-      .map((result) => result.result)
-      .filter((n) => n)
+    return [...noticesData]
       .map((n) => ({
         id: n.id.toString(),
         title: n.title,
@@ -84,29 +77,48 @@ export default function App() {
         date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
       }))
       .reverse();
+    return noticesData.reduceRight((acc, result) => {
+      const n = result.result;
+      if (n) {
+        acc.push({
+          id: n.id.toString(),
+          title: n.title,
+          hash: n.content, // Using 'content' field as hash
+          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+        });
+      }
+      return acc;
+    }, []);
   }, [noticesData]);
 
   // Search Logic (ID, Date, or Title)
   const filteredNotices = useMemo(() => {
+    const lowerQuery = searchQuery.toLowerCase();
     return notices.filter(n => 
       n.id.includes(searchQuery) || 
-      n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.title.toLowerCase().includes(lowerQuery) ||
       n.date.includes(searchQuery)
     );
   }, [notices, searchQuery]);
 
   const handlePublish = useCallback(async (formData) => {
     if (!account) return alert("Connect Wallet!");
-    if (userRole !== "admin") return alert("Unauthorized: Admins only.");
+
+    // Security Fix: On-chain admin verification
+    const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
+    if (userRole !== "admin" || !isAdmin) {
+      return alert("Unauthorized: Admins only.");
+    }
 
     try {
-      // Simulate IPFS Hashing of content
-      const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
+      // Securely simulate IPFS Hashing of content
+      const secureHash = await generateIPFSHash(formData.content);
+      const mockHash = await generateIPFSHash(formData.content);
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
         functionName: 'postNotice',
-        args: [formData.title, mockHash],
+        args: [formData.title, secureHash],
       });
       fetchNotices();
     } catch (err) {
