@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
+import { findInjectedConnector } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
@@ -13,15 +14,6 @@ export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
 
-  const findInjectedConnector = (connectors) =>
-    connectors.find(
-      (c) =>
-        c.id === "injected" ||
-        c.id === "metaMask" ||
-        c.id === "metamask" ||
-        (c.name && /meta/i.test(c.name)) ||
-        /meta/i.test(c.id)
-    );
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 
