@@ -81,12 +81,13 @@ export default function App() {
 
     try {
       // Securely simulate IPFS Hashing of content
+      const secureHash = await generateIPFSHash(formData.content);
       const mockHash = await generateIPFSHash(formData.content);
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
         functionName: 'postNotice',
-        args: [formData.title, mockHash],
+        args: [formData.title, secureHash],
       });
       fetchNotices();
     } catch (err) {
