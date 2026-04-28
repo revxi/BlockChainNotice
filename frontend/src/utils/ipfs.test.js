@@ -1,11 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { generateIPFSHash } from './ipfs';
 
 // Mock crypto if not available in environment
 if (typeof crypto === 'undefined') {
-  global.crypto = {
+  globalThis.crypto = {
     subtle: {
-      digest: async (algo, data) => {
+      digest: async () => {
         // Simple mock of SHA-256 for testing purposes if Web Crypto is missing
         // In a real browser/Node 19+ this won't be needed
         return new Uint8Array(32).fill(1).buffer;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useAccount, useConnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useConnect, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
 import { findInjectedConnector } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
@@ -14,19 +14,6 @@ export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
 
-  const findInjectedConnector = (connectors) => {
-    const found = connectors.find(
-      (c) =>
-        c.type === "injected" ||
-        c.type === "metaMask" ||
-        c.id === "injected" ||
-        c.id === "metaMask" ||
-        c.id === "metamask" ||
-        (typeof c.name === "string" && /meta/i.test(c.name)) ||
-        (typeof c.id === "string" && /meta/i.test(c.id))
-    );
-    return found || connectors[0];
-  };
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 
@@ -44,7 +31,7 @@ export default function App() {
   const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
-    functionName: 'getNoticeCount',
+    functionName: 'getAllNotices',
   });
 
   // Read Admin Address
@@ -52,24 +39,6 @@ export default function App() {
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'admin',
-  });
-
-  // Prepare calls for all notices
-  const noticeContracts = useMemo(() => {
-    if (!noticeCount) return [];
-    const count = Number(noticeCount);
-    return Array.from({ length: count }, (_, i) => ({
-      address: CONTRACT_ADDRESS,
-      abi: ABI,
-      functionName: 'getNotice',
-      args: [BigInt(i)],
-    }));
-  }, [noticeCount]);
-
-  // Read all notices in parallel
-  const { data: noticesData, refetch: refetchNotices } = useReadContracts({
-    contracts: noticeContracts,
-    functionName: 'getAllNotices',
   });
 
   // Refetch notices when transaction is confirmed
@@ -82,16 +51,7 @@ export default function App() {
   // Process notices data
   const notices = useMemo(() => {
     if (!noticesData) return [];
-    return [...noticesData]
-      .map((n) => ({
-        id: n.id.toString(),
-        title: n.title,
-        hash: n.content, // Using 'content' field as hash
-        date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
-      }))
-      .reverse();
-    return noticesData.reduceRight((acc, result) => {
-      const n = result.result;
+    return noticesData.reduceRight((acc, n) => {
       if (n) {
         acc.push({
           id: n.id.toString(),
@@ -106,10 +66,6 @@ export default function App() {
 
   // Search Logic (ID, Date, or Title)
   const filteredNotices = useMemo(() => {
-    const query = searchQuery.toLowerCase();
-    return notices.filter(n => 
-      n.id.includes(searchQuery) || 
-      n.title.toLowerCase().includes(query) ||
     const lowerQuery = searchQuery.toLowerCase();
     return notices.filter(n => 
       n.id.includes(searchQuery) || 
@@ -130,7 +86,6 @@ export default function App() {
     try {
       // Securely simulate IPFS Hashing of content
       const secureHash = await generateIPFSHash(formData.content);
-      const mockHash = await generateIPFSHash(formData.content);
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
@@ -142,7 +97,7 @@ export default function App() {
       console.error("Publish error:", err);
       alert("Error publishing notice (Check console for details)");
     }
-  }, [account, userRole, writeContractAsync, fetchNotices]);
+  }, [account, userRole, writeContractAsync, fetchNotices, adminAddress]);
 
   if (!userRole) {
     return <Login onLogin={setUserRole} />;
