@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
+import { generateIPFSHash } from "./utils/ipfs";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
@@ -100,8 +101,8 @@ export default function App() {
     if (userRole !== "admin") return alert("Unauthorized: Admins only.");
 
     try {
-      // Simulate IPFS Hashing of content
-      const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
+      // Securely simulate IPFS Hashing of content
+      const mockHash = await generateIPFSHash(formData.content);
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
