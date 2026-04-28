@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect, useReadContract } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
+import { findInjectedConnector } from "../utils/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 import ABI from "../utils/abi.json";
 
@@ -18,6 +20,14 @@ export default function Login({ onLogin }) {
   });
 
   // Auto-proceed to admin panel once wallet is connected and verified
+  // Fetch Admin Address from Contract
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: "admin",
+  });
+
+  // Auto-proceed to admin panel once wallet is connected
   useEffect(() => {
     if (account && activeTab === "admin" && !isPending && adminAddress) {
       if (account.toLowerCase() === adminAddress.toLowerCase()) {
@@ -38,6 +48,10 @@ export default function Login({ onLogin }) {
         (c.name && /meta/i.test(c.name)) ||
         /meta/i.test(c.id)
     );
+        setError("Access Denied: Connected wallet is not the authorized admin.");
+      }
+    }
+  }, [account, activeTab, onLogin, isPending, adminAddress]);
 
   const handleAdminLogin = async () => {
     setError("");
@@ -48,6 +62,7 @@ export default function Login({ onLogin }) {
         onLogin("admin");
       } else {
         setError("Unauthorized: Connected wallet is not the admin.");
+        setError("Access Denied: Connected wallet is not the authorized admin.");
       }
       return;
     }
