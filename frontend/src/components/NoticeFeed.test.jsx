@@ -42,7 +42,7 @@ describe("NoticeFeed Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders correct message when filteredNotices is null or undefined", () => {
+  it("renders correct message when filteredNotices is null", () => {
     render(<NoticeFeed filteredNotices={null} />);
     expect(screen.getByText("No notices found")).toBeInTheDocument();
   });

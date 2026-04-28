@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useAccount, useConnect, useReadContract } from "wagmi";
 import { useAccount, useConnect } from "wagmi";
+import { findInjectedConnector } from "../utils/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
+import ABI from "../utils/abi.json";
+
+const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
@@ -8,12 +13,30 @@ export default function Login({ onLogin }) {
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
 
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'admin',
+  });
+
+  // Auto-proceed to admin panel once wallet is connected and verified
+  // Fetch Admin Address from Contract
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: "admin",
+  });
+
   // Auto-proceed to admin panel once wallet is connected
   useEffect(() => {
-    if (account && activeTab === "admin" && !isPending) {
-      onLogin("admin");
+    if (account && activeTab === "admin" && !isPending && adminAddress) {
+      if (account.toLowerCase() === adminAddress.toLowerCase()) {
+        onLogin("admin");
+      } else {
+        setError("Unauthorized: Connected wallet is not the admin.");
+      }
     }
-  }, [account, activeTab, onLogin, isPending]);
+  }, [account, activeTab, onLogin, isPending, adminAddress]);
 
   // Helper to find an injected/MetaMask connector robustly
   const findInjectedConnector = (connectors) => {
@@ -29,13 +52,22 @@ export default function Login({ onLogin }) {
     );
     return found || connectors[0];
   };
+        setError("Access Denied: Connected wallet is not the authorized admin.");
+      }
+    }
+  }, [account, activeTab, onLogin, isPending, adminAddress]);
 
   const handleAdminLogin = async () => {
     setError("");
 
-    // If already connected, proceed
+    // If already connected, proceed if admin
     if (account) {
-      onLogin("admin");
+      if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
+        onLogin("admin");
+      } else {
+        setError("Unauthorized: Connected wallet is not the admin.");
+        setError("Access Denied: Connected wallet is not the authorized admin.");
+      }
       return;
     }
 
