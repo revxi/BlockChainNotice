@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useAccount, useConnect, useDisconnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useConnect, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
+import { findInjectedConnector } from "./utils/connectors";
+import { generateIPFSHash } from "./utils/ipfs";
 import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
@@ -12,15 +14,6 @@ export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
 
-  const findInjectedConnector = (connectors) =>
-    connectors.find(
-      (c) =>
-        c.id === "injected" ||
-        c.id === "metaMask" ||
-        c.id === "metamask" ||
-        (c.name && /meta/i.test(c.name)) ||
-        /meta/i.test(c.id)
-    );
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 
@@ -59,6 +52,18 @@ export default function App() {
         date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
       }))
       .reverse();
+    return noticesData.reduceRight((acc, result) => {
+      const n = result.result;
+      if (n) {
+        acc.push({
+          id: n.id.toString(),
+          title: n.title,
+          hash: n.content, // Using 'content' field as hash
+          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+        });
+      }
+      return acc;
+    }, []);
   }, [noticesData]);
 
   // Search Logic (ID, Date, or Title)
@@ -75,8 +80,8 @@ export default function App() {
     if (userRole !== "admin") return alert("Unauthorized: Admins only.");
 
     try {
-      // Simulate IPFS Hashing of content
-      const mockHash = "Qm" + Math.random().toString(36).substring(2, 15);
+      // Securely simulate IPFS Hashing of content
+      const mockHash = await generateIPFSHash(formData.content);
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
