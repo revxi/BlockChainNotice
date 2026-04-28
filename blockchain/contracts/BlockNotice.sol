@@ -33,6 +33,15 @@ contract BlockNotice {
         uint256 timestamp
     );
 
+    constructor() {
+        admin = msg.sender;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
+
     function postNotice(string memory _title, string memory _content) public onlyAdmin {
         uint256 noticeId = notices.length;
         notices.push(
@@ -62,5 +71,9 @@ contract BlockNotice {
         returns (uint256[] memory)
     {
         return userNotices[_user];
+    }
+
+    function getAllNotices() public view returns (Notice[] memory) {
+        return notices;
     }
 }
