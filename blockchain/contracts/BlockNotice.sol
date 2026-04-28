@@ -12,7 +12,6 @@ contract BlockNotice {
         require(msg.sender == admin, "Only admin can perform this action");
         _;
     }
-    address public owner;
 
     struct Notice {
         uint256 id;
@@ -35,16 +34,6 @@ contract BlockNotice {
     );
 
     function postNotice(string memory _title, string memory _content) public onlyAdmin {
-    constructor() {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not owner");
-        _;
-    }
-
-    function postNotice(string memory _title, string memory _content) public onlyOwner {
         uint256 noticeId = notices.length;
         notices.push(
             Notice(noticeId, msg.sender, _title, _content, block.timestamp)
