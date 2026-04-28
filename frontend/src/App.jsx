@@ -41,6 +41,13 @@ export default function App() {
     functionName: 'getNoticeCount',
   });
 
+  // Read Admin Address
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'admin',
+  });
+
   // Prepare calls for all notices
   const noticeContracts = useMemo(() => {
     if (!noticeCount) return [];
@@ -97,7 +104,12 @@ export default function App() {
 
   const handlePublish = useCallback(async (formData) => {
     if (!account) return alert("Connect Wallet!");
-    if (userRole !== "admin") return alert("Unauthorized: Admins only.");
+
+    // Security Fix: On-chain admin verification
+    const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
+    if (userRole !== "admin" || !isAdmin) {
+      return alert("Unauthorized: Admins only.");
+    }
 
     try {
       // Simulate IPFS Hashing of content
