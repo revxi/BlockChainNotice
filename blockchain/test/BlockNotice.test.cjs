@@ -14,6 +14,12 @@ describe("BlockNotice", function () {
     await blockNotice.waitForDeployment();
   });
 
+  it("Should set the right admin", async function () {
+    expect(await blockNotice.admin()).to.equal(admin.address);
+  });
+
+  describe("postNotice", function () {
+    it("Should post a new notice successfully when called by admin", async function () {
   describe("Deployment", function () {
     it("Should set the right admin", async function () {
       expect(await blockNotice.admin()).to.equal(admin.address);
@@ -26,17 +32,20 @@ describe("BlockNotice", function () {
       const content = "This is a test notice content.";
 
       // Capture the transaction
+      const tx = await blockNotice.postNotice(title, content);
       const tx = await blockNotice.connect(admin).postNotice(title, content);
 
       // Wait for the transaction to be mined
       const receipt = await tx.wait();
 
       // Get the block timestamp
-      const block = await ethers.provider.getBlock(receipt.blockNumber);
+      const blockData = await ethers.provider.getBlock(receipt.blockNumber);
+      const timestamp = blockData.timestamp;
 
       // Check for the event
       await expect(tx)
         .to.emit(blockNotice, "NoticePosted")
+        .withArgs(0n, admin.address, title, timestamp);
         .withArgs(0n, admin.address, title, block.timestamp);
 
       // Check if the notice is stored correctly
@@ -45,6 +54,7 @@ describe("BlockNotice", function () {
       expect(notice.author).to.equal(admin.address);
       expect(notice.title).to.equal(title);
       expect(notice.content).to.equal(content);
+      expect(notice.timestamp).to.equal(timestamp);
       expect(notice.timestamp).to.equal(BigInt(block.timestamp));
 
       // Check if the notice ID is added to userNotices
@@ -54,6 +64,8 @@ describe("BlockNotice", function () {
     });
 
     it("Should prevent non-admins from posting a notice", async function () {
+      const title = "Test Notice";
+      const content = "Test Content";
       const title = "Unauthorized Notice";
       const content = "Unauthorized Content";
 
@@ -63,6 +75,8 @@ describe("BlockNotice", function () {
     });
 
     it("Should handle multiple notices from admin", async function () {
+        await blockNotice.postNotice("Title 1", "Content 1");
+        await blockNotice.postNotice("Title 2", "Content 2");
         await blockNotice.connect(admin).postNotice("Title 1", "Content 1");
         await blockNotice.connect(admin).postNotice("Title 2", "Content 2");
 
@@ -75,6 +89,8 @@ describe("BlockNotice", function () {
         expect(userNotices[1]).to.equal(1n);
     });
 
+    it("Should handle empty title and content from admin", async function () {
+        await blockNotice.postNotice("", "");
     it("Should handle empty title and content", async function () {
         await blockNotice.connect(admin).postNotice("", "");
         const notice = await blockNotice.notices(0);
@@ -84,6 +100,16 @@ describe("BlockNotice", function () {
   });
 
   describe("getNotice", function () {
+    it("Should return the correct notice", async function () {
+        await blockNotice.postNotice("Title", "Content");
+        const notice = await blockNotice.getNotice(0);
+        expect(notice.title).to.equal("Title");
+    });
+
+    it("Should revert if notice does not exist", async function () {
+      await expect(blockNotice.getNotice(999n))
+        .to.be.revertedWithCustomError(blockNotice, "NoticeDoesNotExist")
+        .withArgs(999n);
     it("Should revert if notice does not exist", async function () {
       await expect(blockNotice.getNotice(0))
         .to.be.revertedWithCustomError(blockNotice, "NoticeDoesNotExist")
