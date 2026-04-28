@@ -14,6 +14,19 @@ export default function App() {
   const { address: account } = useAccount();
   const { connectors, connect } = useConnect();
 
+  const findInjectedConnector = (connectors) => {
+    const found = connectors.find(
+      (c) =>
+        c.type === "injected" ||
+        c.type === "metaMask" ||
+        c.id === "injected" ||
+        c.id === "metaMask" ||
+        c.id === "metamask" ||
+        (typeof c.name === "string" && /meta/i.test(c.name)) ||
+        (typeof c.id === "string" && /meta/i.test(c.id))
+    );
+    return found || connectors[0];
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
 
