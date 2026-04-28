@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
+import { findInjectedConnector } from "../utils/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 
 export default function Login({ onLogin }) {
@@ -14,17 +15,6 @@ export default function Login({ onLogin }) {
       onLogin("admin");
     }
   }, [account, activeTab, onLogin, isPending]);
-
-  // Helper to find an injected/MetaMask connector robustly
-  const findInjectedConnector = (connectors) =>
-    connectors.find(
-      (c) =>
-        c.id === "injected" ||
-        c.id === "metaMask" ||
-        c.id === "metamask" ||
-        (c.name && /meta/i.test(c.name)) ||
-        /meta/i.test(c.id)
-    );
 
   const handleAdminLogin = async () => {
     setError("");
