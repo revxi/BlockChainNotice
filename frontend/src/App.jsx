@@ -31,6 +31,31 @@ export default function App() {
   const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
+    functionName: 'getNoticeCount',
+  });
+
+  // Read Admin Address
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: 'admin',
+  });
+
+  // Prepare calls for all notices
+  const noticeContracts = useMemo(() => {
+    if (!noticeCount) return [];
+    const count = Number(noticeCount);
+    return Array.from({ length: count }, (_, i) => ({
+      address: CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: 'getNotice',
+      args: [BigInt(i)],
+    }));
+  }, [noticeCount]);
+
+  // Read all notices in parallel
+  const { data: noticesData, refetch: refetchNotices } = useReadContracts({
+    contracts: noticeContracts,
     functionName: 'getAllNotices',
   });
 
@@ -78,7 +103,12 @@ export default function App() {
 
   const handlePublish = useCallback(async (formData) => {
     if (!account) return alert("Connect Wallet!");
-    if (userRole !== "admin") return alert("Unauthorized: Admins only.");
+
+    // Security Fix: On-chain admin verification
+    const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
+    if (userRole !== "admin" || !isAdmin) {
+      return alert("Unauthorized: Admins only.");
+    }
 
     try {
       // Securely simulate IPFS Hashing of content
