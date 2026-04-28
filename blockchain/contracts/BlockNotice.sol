@@ -4,6 +4,15 @@ pragma solidity ^0.8.19;
 contract BlockNotice {
     address public admin;
 
+    constructor() {
+        admin = msg.sender;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
+
     struct Notice {
         uint256 id;
         address author;
