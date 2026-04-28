@@ -34,35 +34,12 @@ export default function App() {
 
   const isPublishing = isWritePending || isConfirming;
 
-  // Read Notice Count
-  const { data: noticeCount, refetch: refetchCount } = useReadContract({
+  // Read all notices in a single call
+  const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
-    functionName: 'getNoticeCount',
+    functionName: 'getAllNotices',
   });
-
-  // Prepare calls for all notices
-  const noticeContracts = useMemo(() => {
-    if (!noticeCount) return [];
-    const count = Number(noticeCount);
-    return Array.from({ length: count }, (_, i) => ({
-      address: CONTRACT_ADDRESS,
-      abi: ABI,
-      functionName: 'getNotice',
-      args: [BigInt(i)],
-    }));
-  }, [noticeCount]);
-
-  // Read all notices in parallel
-  const { data: noticesData, refetch: refetchNotices } = useReadContracts({
-    contracts: noticeContracts,
-  });
-
-  // Memoized fetch function for notices
-  const fetchNotices = useCallback(() => {
-    refetchCount();
-    refetchNotices();
-  }, [refetchCount, refetchNotices]);
 
   // Refetch notices when transaction is confirmed
   useEffect(() => {
@@ -74,9 +51,7 @@ export default function App() {
   // Process notices data
   const notices = useMemo(() => {
     if (!noticesData) return [];
-    return noticesData
-      .map((result) => result.result)
-      .filter((n) => n)
+    return [...noticesData]
       .map((n) => ({
         id: n.id.toString(),
         title: n.title,
