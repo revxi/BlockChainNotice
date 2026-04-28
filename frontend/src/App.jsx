@@ -74,16 +74,18 @@ export default function App() {
   // Process notices data
   const notices = useMemo(() => {
     if (!noticesData) return [];
-    return noticesData
-      .map((result) => result.result)
-      .filter((n) => n)
-      .map((n) => ({
-        id: n.id.toString(),
-        title: n.title,
-        hash: n.content, // Using 'content' field as hash
-        date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
-      }))
-      .reverse();
+    return noticesData.reduceRight((acc, result) => {
+      const n = result.result;
+      if (n) {
+        acc.push({
+          id: n.id.toString(),
+          title: n.title,
+          hash: n.content, // Using 'content' field as hash
+          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+        });
+      }
+      return acc;
+    }, []);
   }, [noticesData]);
 
   // Search Logic (ID, Date, or Title)
