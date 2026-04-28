@@ -88,9 +88,10 @@ export default function App() {
 
   // Search Logic (ID, Date, or Title)
   const filteredNotices = useMemo(() => {
+    const query = searchQuery.toLowerCase();
     return notices.filter(n => 
       n.id.includes(searchQuery) || 
-      n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      n.title.toLowerCase().includes(query) ||
       n.date.includes(searchQuery)
     );
   }, [notices, searchQuery]);
