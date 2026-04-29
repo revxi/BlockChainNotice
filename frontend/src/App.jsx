@@ -3,7 +3,7 @@ import { useAccount, useConnect, useReadContract, useWriteContract, useWaitForTr
 import ABI from "./utils/abi.json";
 import { findInjectedConnector } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
-import { Search, ShieldCheck, User, Wallet, LayoutGrid } from "lucide-react";
+import { Search, BookOpen, Wallet, User, Bell, ChevronDown, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
@@ -15,20 +15,13 @@ export default function App() {
   const { connectors, connect, error: connectError } = useConnect();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
+  const [userRole, setUserRole] = useState(null);
   const [walletError, setWalletError] = useState("");
 
-  // Write Contract Hook
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
-
-  // Wait for Transaction Hook
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
-
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const isPublishing = isWritePending || isConfirming;
 
-  // Show connect errors
   useEffect(() => {
     if (connectError) {
       setWalletError(
@@ -41,28 +34,22 @@ export default function App() {
     }
   }, [connectError]);
 
-  // Read all notices in a single call
   const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
-    functionName: 'getAllNotices',
+    functionName: "getAllNotices",
   });
 
-  // Read Admin Address
   const { data: adminAddress } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
-    functionName: 'admin',
+    functionName: "admin",
   });
 
-  // Refetch notices when transaction is confirmed
   useEffect(() => {
-    if (isConfirmed) {
-      fetchNotices();
-    }
+    if (isConfirmed) fetchNotices();
   }, [isConfirmed, fetchNotices]);
 
-  // Process notices data
   const notices = useMemo(() => {
     if (!noticesData) return [];
     return noticesData.reduceRight((acc, n) => {
@@ -70,7 +57,7 @@ export default function App() {
         acc.push({
           id: n.id.toString(),
           title: n.title,
-          hash: n.content, // Using 'content' field as hash
+          hash: n.content,
           date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
         });
       }
@@ -78,143 +65,216 @@ export default function App() {
     }, []);
   }, [noticesData]);
 
-  // Search Logic (ID, Date, or Title)
   const filteredNotices = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
-    return notices.filter(n => 
-      n.id.includes(searchQuery) || 
-      n.title.toLowerCase().includes(lowerQuery) ||
-      n.date.includes(searchQuery)
+    return notices.filter(
+      (n) =>
+        n.id.includes(searchQuery) ||
+        n.title.toLowerCase().includes(lowerQuery) ||
+        n.date.includes(searchQuery)
     );
   }, [notices, searchQuery]);
 
-  const handlePublish = useCallback(async (formData) => {
-    if (!account) return alert("Connect Wallet!");
+  const handlePublish = useCallback(
+    async (formData) => {
+      if (!account) return alert("Connect Wallet!");
+      const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
+      if (userRole !== "admin" || !isAdmin) return alert("Unauthorized: Admins only.");
+      try {
+        const secureHash = await generateIPFSHash(formData.content);
+        await writeContractAsync({
+          address: CONTRACT_ADDRESS,
+          abi: ABI,
+          functionName: "postNotice",
+          args: [formData.title, secureHash],
+        });
+        fetchNotices();
+      } catch (err) {
+        console.error("Publish error:", err);
+        alert("Error publishing notice (Check console for details)");
+      }
+    },
+    [account, userRole, writeContractAsync, fetchNotices, adminAddress]
+  );
 
-    // Security Fix: On-chain admin verification
-    const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
-    if (userRole !== "admin" || !isAdmin) {
-      return alert("Unauthorized: Admins only.");
-    }
+  if (!userRole) return <Login onLogin={setUserRole} />;
 
-    try {
-      // Securely simulate IPFS Hashing of content
-      const secureHash = await generateIPFSHash(formData.content);
-      await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'postNotice',
-        args: [formData.title, secureHash],
-      });
-      fetchNotices();
-    } catch (err) {
-      console.error("Publish error:", err);
-      alert("Error publishing notice (Check console for details)");
-    }
-  }, [account, userRole, writeContractAsync, fetchNotices, adminAddress]);
-
-  if (!userRole) {
-    return <Login onLogin={setUserRole} />;
-  }
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
-    <div className="min-h-screen bg-[#0b0f1a] text-slate-300 font-sans selection:bg-blue-500/30 selection:text-blue-200 flex flex-col">
-      {/* Decorative Background Elements */}
-      <div className="fixed top-0 left-0 w-full h-96 bg-blue-600/5 rounded-full blur-3xl -translate-y-1/2 pointer-events-none" />
-      <div className="fixed bottom-0 right-0 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl translate-y-1/3 pointer-events-none" />
+    <div className="min-h-screen bg-slate-100 flex flex-col">
+      {/* Top bar */}
+      <div className="text-white text-xs py-2 px-6 flex items-center justify-between" style={{ backgroundColor: '#0f2050' }}>
+        <span className="font-medium tracking-wide">{today}</span>
+        <span className="flex items-center gap-1.5 text-slate-300">
+          <Bell size={12} />
+          Official Notice Portal &bull; Blockchain Secured
+        </span>
+      </div>
 
-      {/* Navbar */}
-      <nav className="border-b border-white/5 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="relative">
-              <div className="absolute inset-0 bg-blue-500 blur opacity-20 group-hover:opacity-40 transition-opacity rounded-full"></div>
-              <ShieldCheck className="text-blue-500 relative z-10" size={32} />
+      {/* Main navbar */}
+      <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-0 flex items-stretch justify-between">
+          {/* Logo / Brand */}
+          <div className="flex items-center gap-3 py-4">
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm"
+              style={{ backgroundColor: '#163068' }}
+            >
+              <BookOpen size={20} className="text-yellow-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-tight leading-none group-hover:text-blue-200 transition-colors">BlockNotice</h1>
-              <span className="text-[10px] text-blue-400 font-mono tracking-widest uppercase">Decentralized Ledger</span>
+              <div className="text-base font-bold text-slate-800 leading-tight">BlockNotice</div>
+              <div className="text-[10px] text-slate-500 font-medium tracking-widest uppercase">
+                Decentralized Ledger
+              </div>
             </div>
           </div>
 
-          {walletError && (
-            <span className="text-red-400 text-xs mr-3 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full">
-              {walletError}
-            </span>
-          )}
-          <button 
-            onClick={() => {
-              setWalletError("");
-              const injectedConnector = findInjectedConnector(connectors);
-              if (!injectedConnector) {
-                setWalletError("No wallet found. Please install MetaMask.");
-                return;
-              }
-              connect({ connector: injectedConnector });
-            }}
-            className="relative overflow-hidden bg-slate-800 hover:bg-slate-700 border border-slate-700 px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 text-white flex items-center gap-2 group hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:border-blue-500/50"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-            {account ? (
-              <>
-                <User size={16} className="text-blue-400" />
-                <span className="font-mono text-xs">{account.substring(0,6)}...{account.substring(38)}</span>
-              </>
-            ) : (
-              <>
-                <Wallet size={16} className="text-blue-400 group-hover:scale-110 transition-transform" />
-                Connect Wallet
-              </>
+          {/* Nav links */}
+          <div className="hidden md:flex items-center gap-1 ml-8">
+            <a href="#" className="px-4 py-2 text-sm font-semibold text-white rounded-none h-full flex items-center border-b-2 border-yellow-400" style={{ backgroundColor: '#163068' }}>
+              Notice Board
+            </a>
+            <a href="#" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center gap-1">
+              About
+            </a>
+            {userRole === "admin" && (
+              <a href="#" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center gap-1">
+                Admin <ChevronDown size={14} />
+              </a>
             )}
-          </button>
+          </div>
+
+          {/* Wallet connect */}
+          <div className="flex items-center gap-3 ml-auto">
+            {walletError && (
+              <div className="flex items-center gap-1.5 text-red-600 text-xs bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg max-w-xs">
+                <AlertCircle size={13} className="shrink-0" />
+                <span className="truncate">{walletError}</span>
+              </div>
+            )}
+            <button
+              onClick={() => {
+                setWalletError("");
+                const injectedConnector = findInjectedConnector(connectors);
+                if (!injectedConnector) {
+                  setWalletError("No wallet found. Please install MetaMask.");
+                  return;
+                }
+                connect({ connector: injectedConnector });
+              }}
+              className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border transition-all"
+              style={
+                account
+                  ? { borderColor: '#163068', color: '#163068', backgroundColor: '#eef2ff' }
+                  : { backgroundColor: '#163068', color: 'white', borderColor: '#163068' }
+              }
+            >
+              {account ? (
+                <>
+                  <User size={15} />
+                  <span className="font-mono text-xs">
+                    {account.substring(0, 6)}...{account.substring(38)}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Wallet size={15} />
+                  Connect Wallet
+                </>
+              )}
+            </button>
+
+            {userRole && (
+              <button
+                onClick={() => setUserRole(null)}
+                className="text-xs text-slate-500 hover:text-slate-700 font-medium border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Sign Out
+              </button>
+            )}
+          </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-12 flex-1 relative z-10 w-full">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-          <div className="w-full md:max-w-xl">
-            <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-              <LayoutGrid className="text-slate-500" /> Notice Board
-            </h2>
-            <p className="text-slate-400 mb-6">Browse verified notices anchored to the blockchain.</p>
-
-            <div className="relative group">
-              <div className="absolute inset-0 bg-blue-500/5 blur-xl rounded-xl group-hover:bg-blue-500/10 transition-all" />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-400 transition-colors" size={20} />
-              <input
-                className="w-full bg-slate-900/80 backdrop-blur-sm border border-slate-800 rounded-2xl pl-12 pr-4 py-4 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all shadow-lg placeholder:text-slate-600 text-white"
-                placeholder="Search by Notice ID, Title, or Date..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+      {/* Page hero / sub-header */}
+      <div className="border-b border-slate-200" style={{ backgroundColor: '#163068' }}>
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-white">Official Notice Board</h1>
+            <p className="text-blue-200 text-sm mt-0.5">
+              All notices are permanently recorded on the Ethereum blockchain
+            </p>
           </div>
-
+          {/* Search */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-blue-200 outline-none focus:bg-white/20 focus:border-white/40 transition-all"
+              placeholder="Search by title, ID, or date..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
+      </div>
 
-        {/* Content Grid */}
-        <div className="grid lg:grid-cols-12 gap-8 items-start">
-          {/* Admin Panel - Only visible when logged in as admin */}
-          {userRole === "admin" && (
-             <AdminPanel onPublish={handlePublish} loading={isPublishing} />
+      {/* Stats bar */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6 text-sm text-slate-600">
+          <span>
+            <strong className="text-slate-800">{notices.length}</strong> notices published
+          </span>
+          {searchQuery && (
+            <span className="text-slate-500">
+              &bull; <strong className="text-slate-700">{filteredNotices.length}</strong> matching results
+            </span>
           )}
+          {userRole === "admin" && (
+            <span className="ml-auto flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              <User size={11} />
+              Admin Mode
+            </span>
+          )}
+        </div>
+      </div>
 
-          {/* Notice Feed - Spans full width if not admin, else takes remaining space */}
-          <div className={`${userRole === "admin" ? "lg:col-span-8" : "lg:col-span-12"} transition-all duration-500`}>
-             <NoticeFeed filteredNotices={filteredNotices} searchQuery={searchQuery} />
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
+        <div className="grid lg:grid-cols-12 gap-6 items-start">
+          {userRole === "admin" && (
+            <AdminPanel onPublish={handlePublish} loading={isPublishing} />
+          )}
+          <div className={userRole === "admin" ? "lg:col-span-8" : "lg:col-span-12"}>
+            <NoticeFeed filteredNotices={filteredNotices} searchQuery={searchQuery} />
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 bg-slate-900/50 backdrop-blur-sm py-8 mt-12">
-        <div className="max-w-7xl mx-auto px-6 text-center text-slate-500 text-sm">
-          <p className="flex items-center justify-center gap-2 mb-2">
-            <ShieldCheck size={16} className="text-slate-600" />
-            Secured by Ethereum Blockchain & IPFS
-          </p>
-          <p>&copy; {new Date().getFullYear()} BlockNotice Decentralized System. All rights reserved.</p>
+      <footer className="bg-white border-t border-slate-200 mt-auto">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded flex items-center justify-center" style={{ backgroundColor: '#163068' }}>
+              <BookOpen size={14} className="text-yellow-300" />
+            </div>
+            <span className="font-medium text-slate-700">BlockNotice</span>
+            <span className="text-slate-300">&bull;</span>
+            <span>Official Decentralized Notice System</span>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-slate-400">
+            <span>Secured by Ethereum Blockchain</span>
+            <span className="text-slate-300">&bull;</span>
+            <span>IPFS Content Addressing</span>
+            <span className="text-slate-300">&bull;</span>
+            <span>&copy; {new Date().getFullYear()}</span>
+          </div>
         </div>
       </footer>
     </div>
