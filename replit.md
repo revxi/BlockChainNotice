@@ -45,3 +45,12 @@ Runs on port 5000.
 Configured as a static site deployment:
 - Build: `cd frontend && npm run build`
 - Public dir: `dist`
+
+## GitHub Push
+
+The GitHub OAuth integration was not set up via Replit. Instead, pushes use a Personal Access Token stored as the `GITHUB_PERSONAL_ACCESS_TOKEN` secret.
+
+To push to GitHub:
+```bash
+git push https://revxi:${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/revxi/BlockChainNotice.git main
+```
