@@ -69,7 +69,7 @@ describe('Login Component', () => {
     fireEvent.click(verifyButton);
 
     expect(mockOnLogin).not.toHaveBeenCalled();
-    expect(screen.getByText(/Unauthorized: Connected wallet is not the admin/i)).toBeInTheDocument();
+    expect(screen.getByText(/Access Denied: Connected wallet is not the authorized admin/i)).toBeInTheDocument();
   });
 
   it('auto-logs in admin if already connected on tab switch', async () => {

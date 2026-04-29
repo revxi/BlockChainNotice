@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect, useReadContract } from "wagmi";
-import { useAccount, useConnect } from "wagmi";
 import { findInjectedConnector } from "../utils/connectors";
 import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
 import ABI from "../utils/abi.json";
@@ -19,40 +18,17 @@ export default function Login({ onLogin }) {
     functionName: 'admin',
   });
 
-  // Auto-proceed to admin panel once wallet is connected and verified
-  // Fetch Admin Address from Contract
-  const { data: adminAddress } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: "admin",
-  });
-
   // Auto-proceed to admin panel once wallet is connected
   useEffect(() => {
     if (account && activeTab === "admin" && !isPending && adminAddress) {
       if (account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else {
-        setError("Unauthorized: Connected wallet is not the admin.");
-      }
-    }
-  }, [account, activeTab, onLogin, isPending, adminAddress]);
-
-  // Helper to find an injected/MetaMask connector robustly
-  const findInjectedConnector = (connectors) => {
-    const found = connectors.find(
-      (c) =>
-        c.type === "injected" ||
-        c.type === "metaMask" ||
-        c.id === "injected" ||
-        c.id === "metaMask" ||
-        c.id === "metamask" ||
-        (typeof c.name === "string" && /meta/i.test(c.name)) ||
-        (typeof c.id === "string" && /meta/i.test(c.id))
-    );
-    return found || connectors[0];
-  };
-        setError("Access Denied: Connected wallet is not the authorized admin.");
+        // Use timeout to avoid calling setState synchronously within effect
+        const timer = setTimeout(() => {
+          setError("Access Denied: Connected wallet is not the authorized admin.");
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
   }, [account, activeTab, onLogin, isPending, adminAddress]);
@@ -65,7 +41,6 @@ export default function Login({ onLogin }) {
       if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else {
-        setError("Unauthorized: Connected wallet is not the admin.");
         setError("Access Denied: Connected wallet is not the authorized admin.");
       }
       return;
