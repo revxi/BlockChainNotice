@@ -38,3 +38,7 @@ externalPort = 80
 deploymentTarget = "static"
 build = ["bash", "-c", "cd frontend && npm run build"]
 publicDir = "dist"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 120000
