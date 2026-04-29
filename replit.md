@@ -44,7 +44,7 @@ Runs on port 5000.
 
 Configured as a static site deployment:
 - Build: `cd frontend && npm run build`
-- Public dir: `dist`
+- Public dir: `frontend/dist` (output goes to `frontend/dist/`, NOT root `dist/`)
 
 ## GitHub Push
 

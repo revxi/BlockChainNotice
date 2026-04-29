@@ -37,7 +37,7 @@ externalPort = 80
 [deployment]
 deploymentTarget = "static"
 build = ["bash", "-c", "cd frontend && npm run build"]
-publicDir = "dist"
+publicDir = "frontend/dist"
 
 [postMerge]
 path = "scripts/post-merge.sh"
