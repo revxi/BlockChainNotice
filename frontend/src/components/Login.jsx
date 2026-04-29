@@ -8,7 +8,7 @@ const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
-  const { connectors, connect, isPending } = useConnect();
+  const { connectors, connect, isPending, error: connectError } = useConnect();
   const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
   const [error, setError] = useState("");
 
@@ -17,6 +17,19 @@ export default function Login({ onLogin }) {
     abi: ABI,
     functionName: "admin",
   });
+
+  // Show connect errors
+  useEffect(() => {
+    if (connectError) {
+      setError(
+        connectError.message?.includes("not installed") || connectError.message?.includes("not found")
+          ? "Wallet not found. Please install MetaMask."
+          : connectError.message?.includes("rejected") || connectError.message?.includes("denied")
+          ? "Connection rejected. Please try again."
+          : "Failed to connect wallet. Make sure MetaMask is installed."
+      );
+    }
+  }, [connectError]);
 
   // Auto-proceed to admin panel once wallet is connected
   useEffect(() => {
@@ -51,7 +64,7 @@ export default function Login({ onLogin }) {
     const injectedConnector = findInjectedConnector(connectors);
 
     if (!injectedConnector) {
-      setError("MetaMask or Web3 wallet extension not found. Please install it.");
+      setError("No wallet extension found. Please install MetaMask from metamask.io.");
       return;
     }
 

@@ -12,10 +12,11 @@ const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function App() {
   const { address: account } = useAccount();
-  const { connectors, connect } = useConnect();
+  const { connectors, connect, error: connectError } = useConnect();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [userRole, setUserRole] = useState(null); // 'user' | 'admin' | null
+  const [walletError, setWalletError] = useState("");
 
   // Write Contract Hook
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
@@ -26,6 +27,19 @@ export default function App() {
   });
 
   const isPublishing = isWritePending || isConfirming;
+
+  // Show connect errors
+  useEffect(() => {
+    if (connectError) {
+      setWalletError(
+        connectError.message?.includes("not installed") || connectError.message?.includes("not found")
+          ? "Wallet not found. Please install MetaMask."
+          : connectError.message?.includes("rejected") || connectError.message?.includes("denied")
+          ? "Connection rejected by user."
+          : "Failed to connect wallet. Make sure MetaMask is installed."
+      );
+    }
+  }, [connectError]);
 
   // Read all notices in a single call
   const { data: noticesData, refetch: fetchNotices } = useReadContract({
@@ -123,12 +137,20 @@ export default function App() {
             </div>
           </div>
 
+          {walletError && (
+            <span className="text-red-400 text-xs mr-3 bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full">
+              {walletError}
+            </span>
+          )}
           <button 
             onClick={() => {
+              setWalletError("");
               const injectedConnector = findInjectedConnector(connectors);
-              if (injectedConnector) {
-                connect({ connector: injectedConnector });
+              if (!injectedConnector) {
+                setWalletError("No wallet found. Please install MetaMask.");
+                return;
               }
+              connect({ connector: injectedConnector });
             }}
             className="relative overflow-hidden bg-slate-800 hover:bg-slate-700 border border-slate-700 px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 text-white flex items-center gap-2 group hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] hover:border-blue-500/50"
           >
