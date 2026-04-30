@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAccount, useConnect, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
-import { findInjectedConnector } from "./utils/connectors";
+import { findInjectedConnector, isMetaMaskInstalled } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
 import { Search, BookOpen, Wallet, User, Bell, ChevronDown, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
@@ -12,7 +12,6 @@ const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function App() {
   const { address: account } = useAccount();
-  const { connectors, connect } = useConnect();
   const { connectors, connect, error: connectError } = useConnect();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,17 +37,12 @@ export default function App() {
   const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
-    functionName: 'getAllNotices',
     functionName: "getAllNotices",
   });
 
   const { data: adminAddress } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
-    functionName: 'admin',
-  });
-
-  // Refetch notices when transaction is confirmed
     functionName: "admin",
   });
 
@@ -58,10 +52,6 @@ export default function App() {
 
   const notices = useMemo(() => {
     if (!noticesData) return [];
-    return noticesData.reduceRight((acc, result) => {
-      // The result might be wrapped or unwrapped depending on wagmi version,
-      // but since it's a single read contract it should be an array of notices directly.
-      const n = result?.result || result;
     return noticesData.reduceRight((acc, n) => {
       if (n) {
         acc.push({
@@ -107,21 +97,6 @@ export default function App() {
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]
   );
 
-    try {
-      // Securely simulate IPFS Hashing of content
-      const secureHash = await generateIPFSHash(formData.content);
-      await writeContractAsync({
-        address: CONTRACT_ADDRESS,
-        abi: ABI,
-        functionName: 'postNotice',
-        args: [formData.title, secureHash],
-      });
-      fetchNotices();
-    } catch (err) {
-      console.error("Publish error:", err);
-      alert("Error publishing notice (Check console for details)");
-    }
-  }, [account, userRole, writeContractAsync, fetchNotices, adminAddress]);
   if (!userRole) return <Login onLogin={setUserRole} />;
 
   const today = new Date().toLocaleDateString("en-IN", {
@@ -187,12 +162,21 @@ export default function App() {
             <button
               onClick={() => {
                 setWalletError("");
-                const injectedConnector = findInjectedConnector(connectors);
-                if (!injectedConnector) {
-                  setWalletError("No wallet found. Please install MetaMask.");
+                if (!isMetaMaskInstalled()) {
+                  setWalletError("MetaMask not found. Please install MetaMask.");
+                  window.open("https://metamask.io/download/", "_blank");
                   return;
                 }
-                connect({ connector: injectedConnector });
+                const connector = findInjectedConnector(connectors);
+                if (connector) {
+                  connect({ connector });
+                  return;
+                }
+                window.ethereum?.request({ method: "eth_requestAccounts" }).catch((err) => {
+                  setWalletError(
+                    err.code === 4001 ? "Connection rejected." : "Failed to connect MetaMask."
+                  );
+                });
               }}
               className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border transition-all"
               style={
