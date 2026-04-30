@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from 'vitest';
 import AdminPanel from './AdminPanel';
 
@@ -60,6 +61,9 @@ describe('AdminPanel Component', () => {
     expect(screen.getByText(/Publishing to Blockchain.../i)).toBeInTheDocument();
   });
 
+});
+
+describe("AdminPanel Component V2", () => {
   it("renders the form elements correctly", () => {
     render(<AdminPanel onPublish={vi.fn()} loading={false} />);
 

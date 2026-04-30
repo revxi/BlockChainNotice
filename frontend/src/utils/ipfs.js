@@ -15,6 +15,15 @@ function base58Encode(uint8Array) {
   // Handle leading zeros
   for (let i = 0; i < uint8Array.length && uint8Array[i] === 0; i++) {
     result = ALPHABET[0] + result;
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+function base58Encode(buffer) {
+  let result = '';
+  let x = BigInt('0x' + Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
+
+  while (x > 0n) {
+    result = BASE58_ALPHABET[Number(x % 58n)] + result;
+    x = x / 58n;
   }
   return result;
 }

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect, useReadContract } from "wagmi";
 import { findInjectedConnector } from "../utils/connectors";
-import { User, Lock, ShieldCheck, ArrowRight, Wallet, AlertCircle } from "lucide-react";
+import { User, Lock, ArrowRight, Wallet, AlertCircle, BookOpen } from "lucide-react";
 import ABI from "../utils/abi.json";
 
 const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
-  const { connectors, connect, isPending } = useConnect();
-  const [activeTab, setActiveTab] = useState("user"); // 'user' or 'admin'
+  const { connectors, connect, isPending, error: connectError } = useConnect();
+  const [activeTab, setActiveTab] = useState("user");
   const [error, setError] = useState("");
 
   const { data: adminAddress } = useReadContract({
@@ -19,6 +19,21 @@ export default function Login({ onLogin }) {
   });
 
   // Auto-proceed to admin panel once wallet is connected
+    functionName: "admin",
+  });
+
+  useEffect(() => {
+    if (connectError) {
+      setError(
+        connectError.message?.includes("not installed") || connectError.message?.includes("not found")
+          ? "Wallet not found. Please install MetaMask."
+          : connectError.message?.includes("rejected") || connectError.message?.includes("denied")
+          ? "Connection rejected. Please try again."
+          : "Failed to connect wallet. Make sure MetaMask is installed."
+      );
+    }
+  }, [connectError]);
+
   useEffect(() => {
     if (account && activeTab === "admin" && !isPending && adminAddress) {
       if (account.toLowerCase() === adminAddress.toLowerCase()) {
@@ -32,11 +47,15 @@ export default function Login({ onLogin }) {
       }
     }
   }, [account, activeTab, onLogin, isPending, adminAddress]);
+        if (!error) {
+          setTimeout(() => setError("Access Denied: Connected wallet is not the authorized admin."), 0);
+        }
+      }
+    }
+  }, [account, activeTab, onLogin, isPending, adminAddress, error]);
 
   const handleAdminLogin = async () => {
     setError("");
-
-    // If already connected, proceed if admin
     if (account) {
       if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
@@ -45,18 +64,13 @@ export default function Login({ onLogin }) {
       }
       return;
     }
-
-    // Get the injected connector (MetaMask, etc.)
     const injectedConnector = findInjectedConnector(connectors);
-
     if (!injectedConnector) {
-      setError("MetaMask or Web3 wallet extension not found. Please install it.");
+      setError("No wallet extension found. Please install MetaMask from metamask.io.");
       return;
     }
-
     try {
       connect({ connector: injectedConnector });
-      // After connection, useEffect will handle the onLogin call
     } catch (err) {
       console.error("Connection error:", err);
       setError("Failed to connect wallet. Please try again.");
@@ -64,112 +78,127 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f1a] text-slate-300 font-sans flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px]" />
-      </div>
+    <div className="min-h-screen bg-slate-100 flex flex-col">
+      {/* Top header bar */}
+      <header className="bg-navy-800 text-white py-3 px-6 flex items-center gap-3 shadow-md" style={{ backgroundColor: '#163068' }}>
+        <BookOpen size={20} className="text-yellow-300" />
+        <span className="text-sm font-medium tracking-wide uppercase text-slate-200">
+          Official College Notice Portal
+        </span>
+      </header>
 
-      <div className="max-w-md w-full relative z-10">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-500/20 to-purple-500/20 mb-4 border border-white/10 shadow-xl shadow-blue-500/10">
-            <ShieldCheck size={32} className="text-blue-400" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">BlockNotice</h1>
-          <p className="text-slate-400">Secure Decentralized Notice Board</p>
-        </div>
-
-        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-2 shadow-2xl">
-          {/* Tabs */}
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-slate-950/50 rounded-2xl">
-            <button
-              onClick={() => { setActiveTab("user"); setError(""); }}
-              className={`flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeTab === "user"
-                  ? "bg-slate-800 text-white shadow-lg shadow-black/20"
-                  : "text-slate-500 hover:text-slate-300"
-              }`}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md animate-fade-in">
+          {/* Institution branding */}
+          <div className="text-center mb-8">
+            <div
+              className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 shadow-lg"
+              style={{ backgroundColor: '#163068' }}
             >
-              <User size={18} />
-              User Access
-            </button>
-            <button
-              onClick={() => { setActiveTab("admin"); setError(""); }}
-              className={`flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                activeTab === "admin"
-                  ? "bg-blue-600/20 text-blue-300 border border-blue-500/20 shadow-lg shadow-blue-500/10"
-                  : "text-slate-500 hover:text-slate-300"
-              }`}
-            >
-              <Lock size={18} />
-              Admin Portal
-            </button>
+              <BookOpen size={36} className="text-yellow-300" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-800 mb-1" style={{ fontFamily: 'Merriweather, serif' }}>
+              BlockNotice
+            </h1>
+            <p className="text-slate-500 text-sm font-medium tracking-wide">
+              Decentralized Official Notice Board
+            </p>
+            <div className="mt-3 h-0.5 w-16 mx-auto rounded-full" style={{ backgroundColor: '#163068' }} />
           </div>
 
-          <div className="px-6 pb-6 pt-2">
-            {activeTab === "user" ? (
-              <div className="space-y-6 text-center animate-fadeIn">
-                <div className="p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50">
-                  <h3 className="text-white font-bold text-lg mb-2">Welcome Guest</h3>
-                  <p className="text-slate-400 text-sm">
-                    Access public notices securely on the blockchain. Read-only access granted.
-                  </p>
-                </div>
-                <button
-                  onClick={() => onLogin("user")}
-                  className="w-full bg-slate-100 hover:bg-white text-slate-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  Enter Dashboard
-                  <ArrowRight size={20} />
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-6 text-center animate-fadeIn">
-                <div className="p-6 bg-blue-900/10 rounded-2xl border border-blue-500/10">
-                  <h3 className="text-white font-bold text-lg mb-2">Administrator</h3>
-                  <p className="text-slate-400 text-sm">
-                    Restricted access. Connect the official admin wallet to proceed.
-                  </p>
-                </div>
+          {/* Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            {/* Tab bar */}
+            <div className="flex border-b border-slate-200">
+              <button
+                onClick={() => { setActiveTab("user"); setError(""); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-all duration-200 ${
+                  activeTab === "user"
+                    ? "text-white border-b-2"
+                    : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                }`}
+                style={activeTab === "user" ? { backgroundColor: '#163068', borderColor: '#d9970d' } : {}}
+              >
+                <User size={16} />
+                Student / Viewer
+              </button>
+              <button
+                onClick={() => { setActiveTab("admin"); setError(""); }}
+                className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-all duration-200 border-l border-slate-200 ${
+                  activeTab === "admin"
+                    ? "text-white border-b-2"
+                    : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                }`}
+                style={activeTab === "admin" ? { backgroundColor: '#163068', borderColor: '#d9970d' } : {}}
+              >
+                <Lock size={16} />
+                Administrator
+              </button>
+            </div>
 
-                {error && (
-                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20 text-left">
-                    <AlertCircle size={16} className="shrink-0" />
-                    <span>{error}</span>
+            <div className="p-8">
+              {activeTab === "user" ? (
+                <div className="space-y-5 animate-fade-in">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <h3 className="font-semibold text-slate-800 mb-1">Public Access</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">
+                      Browse all official notices published on the blockchain. No login required for read-only access.
+                    </p>
                   </div>
-                )}
+                  <button
+                    onClick={() => onLogin("user")}
+                    className="w-full text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                    style={{ backgroundColor: '#163068' }}
+                  >
+                    View Notice Board
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-5 animate-fade-in">
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                    <h3 className="font-semibold text-slate-800 mb-1">Restricted Access</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">
+                      Only the authorized administrator can publish notices. Connect your admin wallet to proceed.
+                    </p>
+                  </div>
 
-                <button
-                  onClick={handleAdminLogin}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5"
-                >
-                  {account ? (
-                    <>
-                      <Lock size={20} />
-                      Verify & Enter
-                    </>
-                  ) : (
-                    <>
-                      <Wallet size={20} />
-                      Connect Admin Wallet
-                    </>
+                  {error && (
+                    <div className="flex items-start gap-2 text-red-700 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                      <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                      <span>{error}</span>
+                    </div>
                   )}
-                </button>
-                {account && (
-                  <p className="text-xs text-slate-500 font-mono">
-                    Connected: {account.substring(0, 6)}...{account.substring(38)}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
 
-        <p className="text-center text-slate-600 text-xs mt-8">
-          &copy; {new Date().getFullYear()} BlockNotice Decentralized System
-        </p>
+                  <button
+                    onClick={handleAdminLogin}
+                    disabled={isPending}
+                    className="w-full text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#163068' }}
+                  >
+                    <Wallet size={18} />
+                    {isPending ? "Connecting..." : account ? "Verify & Enter" : "Connect Admin Wallet"}
+                  </button>
+
+                  {account && (
+                    <p className="text-center text-xs text-slate-400 font-mono bg-slate-50 py-2 px-3 rounded-lg border border-slate-200">
+                      Connected: {account.substring(0, 6)}...{account.substring(38)}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <p className="text-center text-slate-400 text-xs mt-6">
+            Secured by Ethereum Blockchain &bull; Tamper-proof &bull; Immutable Records
+          </p>
+        </div>
       </div>
+
+      <footer className="text-center text-slate-400 text-xs py-4 border-t border-slate-200 bg-white">
+        &copy; {new Date().getFullYear()} BlockNotice &mdash; Official Institutional Notice System
+      </footer>
     </div>
   );
 }
