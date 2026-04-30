@@ -15,6 +15,10 @@ export default function Login({ onLogin }) {
   const { data: adminAddress } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
+    functionName: 'admin',
+  });
+
+  // Auto-proceed to admin panel once wallet is connected
     functionName: "admin",
   });
 
@@ -35,6 +39,14 @@ export default function Login({ onLogin }) {
       if (account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else {
+        // Use timeout to avoid calling setState synchronously within effect
+        const timer = setTimeout(() => {
+          setError("Access Denied: Connected wallet is not the authorized admin.");
+        }, 0);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [account, activeTab, onLogin, isPending, adminAddress]);
         if (!error) {
           setTimeout(() => setError("Access Denied: Connected wallet is not the authorized admin."), 0);
         }

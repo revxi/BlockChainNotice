@@ -12,6 +12,7 @@ const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function App() {
   const { address: account } = useAccount();
+  const { connectors, connect } = useConnect();
   const { connectors, connect, error: connectError } = useConnect();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,12 +38,17 @@ export default function App() {
   const { data: noticesData, refetch: fetchNotices } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
+    functionName: 'getAllNotices',
     functionName: "getAllNotices",
   });
 
   const { data: adminAddress } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
+    functionName: 'admin',
+  });
+
+  // Refetch notices when transaction is confirmed
     functionName: "admin",
   });
 
@@ -52,6 +58,10 @@ export default function App() {
 
   const notices = useMemo(() => {
     if (!noticesData) return [];
+    return noticesData.reduceRight((acc, result) => {
+      // The result might be wrapped or unwrapped depending on wagmi version,
+      // but since it's a single read contract it should be an array of notices directly.
+      const n = result?.result || result;
     return noticesData.reduceRight((acc, n) => {
       if (n) {
         acc.push({
@@ -97,6 +107,21 @@ export default function App() {
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]
   );
 
+    try {
+      // Securely simulate IPFS Hashing of content
+      const secureHash = await generateIPFSHash(formData.content);
+      await writeContractAsync({
+        address: CONTRACT_ADDRESS,
+        abi: ABI,
+        functionName: 'postNotice',
+        args: [formData.title, secureHash],
+      });
+      fetchNotices();
+    } catch (err) {
+      console.error("Publish error:", err);
+      alert("Error publishing notice (Check console for details)");
+    }
+  }, [account, userRole, writeContractAsync, fetchNotices, adminAddress]);
   if (!userRole) return <Login onLogin={setUserRole} />;
 
   const today = new Date().toLocaleDateString("en-IN", {
