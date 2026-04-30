@@ -69,7 +69,6 @@ describe('Login Component', () => {
     fireEvent.click(verifyButton);
 
     expect(mockOnLogin).not.toHaveBeenCalled();
-    expect(screen.getByText(/Access Denied: Connected wallet is not the authorized admin/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/Access Denied: Connected wallet is not the authorized admin/i)).toBeInTheDocument();
