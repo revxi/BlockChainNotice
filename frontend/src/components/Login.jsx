@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect, useReadContract } from "wagmi";
-import { findInjectedConnector } from "../utils/connectors";
+import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors";
 import { User, Lock, ArrowRight, Wallet, AlertCircle, BookOpen } from "lucide-react";
 import ABI from "../utils/abi.json";
 
@@ -44,6 +44,7 @@ export default function Login({ onLogin }) {
 
   const handleAdminLogin = async () => {
     setError("");
+
     if (account) {
       if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
@@ -52,16 +53,28 @@ export default function Login({ onLogin }) {
       }
       return;
     }
-    const injectedConnector = findInjectedConnector(connectors);
-    if (!injectedConnector) {
-      setError("No wallet extension found. Please install MetaMask from metamask.io.");
+
+    if (!isMetaMaskInstalled()) {
+      setError("MetaMask not found. Please install MetaMask from metamask.io.");
+      window.open("https://metamask.io/download/", "_blank");
       return;
     }
+
+    const connector = findInjectedConnector(connectors);
+    if (connector) {
+      connect({ connector });
+      return;
+    }
+
     try {
-      connect({ connector: injectedConnector });
+      await window.ethereum.request({ method: "eth_requestAccounts" });
     } catch (err) {
-      console.error("Connection error:", err);
-      setError("Failed to connect wallet. Please try again.");
+      if (err.code === 4001) {
+        setError("Connection rejected. Please approve the MetaMask request.");
+      } else {
+        console.error("Connection error:", err);
+        setError("Failed to connect MetaMask. Please try again.");
+      }
     }
   };
 

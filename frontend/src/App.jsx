@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAccount, useConnect, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import ABI from "./utils/abi.json";
-import { findInjectedConnector } from "./utils/connectors";
+import { findInjectedConnector, isMetaMaskInstalled } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
 import { Search, BookOpen, Wallet, User, Bell, ChevronDown, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
@@ -162,12 +162,21 @@ export default function App() {
             <button
               onClick={() => {
                 setWalletError("");
-                const injectedConnector = findInjectedConnector(connectors);
-                if (!injectedConnector) {
-                  setWalletError("No wallet found. Please install MetaMask.");
+                if (!isMetaMaskInstalled()) {
+                  setWalletError("MetaMask not found. Please install MetaMask.");
+                  window.open("https://metamask.io/download/", "_blank");
                   return;
                 }
-                connect({ connector: injectedConnector });
+                const connector = findInjectedConnector(connectors);
+                if (connector) {
+                  connect({ connector });
+                  return;
+                }
+                window.ethereum?.request({ method: "eth_requestAccounts" }).catch((err) => {
+                  setWalletError(
+                    err.code === 4001 ? "Connection rejected." : "Failed to connect MetaMask."
+                  );
+                });
               }}
               className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border transition-all"
               style={
