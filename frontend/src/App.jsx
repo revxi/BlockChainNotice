@@ -3,7 +3,7 @@ import { useAccount, useConnect, useReadContract, useWriteContract, useWaitForTr
 import ABI from "./utils/abi.json";
 import { findInjectedConnector, isMetaMaskInstalled } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
-import { Search, BookOpen, Wallet, User, Bell, ChevronDown, AlertCircle } from "lucide-react";
+import { Search, Shield, Wallet, User, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
@@ -28,8 +28,8 @@ export default function App() {
         connectError.message?.includes("not installed") || connectError.message?.includes("not found")
           ? "Wallet not found. Please install MetaMask."
           : connectError.message?.includes("rejected") || connectError.message?.includes("denied")
-          ? "Connection rejected by user."
-          : "Failed to connect wallet. Make sure MetaMask is installed."
+          ? "Connection rejected."
+          : "Failed to connect wallet."
       );
     }
   }, [connectError]);
@@ -99,158 +99,104 @@ export default function App() {
 
   if (!userRole) return <Login onLogin={setUserRole} />;
 
-  const today = new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
-      {/* Top bar */}
-      <div className="text-white text-xs py-2 px-6 flex items-center justify-between" style={{ backgroundColor: '#0f2050' }}>
-        <span className="font-medium tracking-wide">{today}</span>
-        <span className="flex items-center gap-1.5 text-slate-300">
-          <Bell size={12} />
-          Official Notice Portal &bull; Blockchain Secured
-        </span>
-      </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
 
-      {/* Main navbar */}
-      <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-0 flex items-stretch justify-between">
-          {/* Logo / Brand */}
-          <div className="flex items-center gap-3 py-4">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm"
-              style={{ backgroundColor: '#163068' }}
-            >
-              <BookOpen size={20} className="text-yellow-300" />
-            </div>
-            <div>
-              <div className="text-base font-bold text-slate-800 leading-tight">BlockNotice</div>
-              <div className="text-[10px] text-slate-500 font-medium tracking-widest uppercase">
-                Decentralized Ledger
-              </div>
-            </div>
-          </div>
+      {/* Navbar */}
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
-          {/* Nav links */}
-          <div className="hidden md:flex items-center gap-1 ml-8">
-            <a href="#" className="px-4 py-2 text-sm font-semibold text-white rounded-none h-full flex items-center border-b-2 border-yellow-400" style={{ backgroundColor: '#163068' }}>
-              Notice Board
-            </a>
-            <a href="#" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center gap-1">
-              About
-            </a>
+          {/* Brand */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: "#c9a84c" }}>
+              <Shield size={14} className="text-white" />
+            </div>
+            <span className="font-bold text-slate-800 text-sm tracking-tight">BlockNotice</span>
             {userRole === "admin" && (
-              <a href="#" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors flex items-center gap-1">
-                Admin <ChevronDown size={14} />
-              </a>
+              <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+                Admin
+              </span>
             )}
           </div>
 
-          {/* Wallet connect */}
-          <div className="flex items-center gap-3 ml-auto">
-            {walletError && (
-              <div className="flex items-center gap-1.5 text-red-600 text-xs bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg max-w-xs">
-                <AlertCircle size={13} className="shrink-0" />
-                <span className="truncate">{walletError}</span>
-              </div>
-            )}
-            <button
-              onClick={() => {
-                setWalletError("");
-                if (!isMetaMaskInstalled()) {
-                  setWalletError("MetaMask not found. Please install MetaMask.");
-                  window.open("https://metamask.io/download/", "_blank");
-                  return;
-                }
-                const connector = findInjectedConnector(connectors);
-                if (connector) {
-                  connect({ connector });
-                  return;
-                }
-                window.ethereum?.request({ method: "eth_requestAccounts" }).catch((err) => {
-                  setWalletError(
-                    err.code === 4001 ? "Connection rejected." : "Failed to connect MetaMask."
-                  );
-                });
-              }}
-              className="flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border transition-all"
-              style={
-                account
-                  ? { borderColor: '#163068', color: '#163068', backgroundColor: '#eef2ff' }
-                  : { backgroundColor: '#163068', color: 'white', borderColor: '#163068' }
-              }
-            >
-              {account ? (
-                <>
-                  <User size={15} />
-                  <span className="font-mono text-xs">
-                    {account.substring(0, 6)}...{account.substring(38)}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <Wallet size={15} />
-                  Connect Wallet
-                </>
-              )}
-            </button>
-
-            {userRole && (
-              <button
-                onClick={() => setUserRole(null)}
-                className="text-xs text-slate-500 hover:text-slate-700 font-medium border border-slate-200 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
-              >
-                Sign Out
-              </button>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Page hero / sub-header */}
-      <div className="border-b border-slate-200" style={{ backgroundColor: '#163068' }}>
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-white">Official Notice Board</h1>
-            <p className="text-blue-200 text-sm mt-0.5">
-              All notices are permanently recorded on the Ethereum blockchain
-            </p>
-          </div>
           {/* Search */}
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
-              className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder:text-blue-200 outline-none focus:bg-white/20 focus:border-white/40 transition-all"
-              placeholder="Search by title, ID, or date..."
+              className="w-full border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all bg-slate-50"
+              placeholder="Search notices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </div>
-      </div>
 
-      {/* Stats bar */}
+          {/* Right actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {walletError && (
+              <div className="flex items-center gap-1.5 text-red-600 text-xs bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
+                <AlertCircle size={12} className="shrink-0" />
+                <span className="hidden sm:inline truncate max-w-[160px]">{walletError}</span>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setWalletError("");
+                if (!isMetaMaskInstalled()) {
+                  setWalletError("MetaMask not found.");
+                  window.open("https://metamask.io/download/", "_blank");
+                  return;
+                }
+                const connector = findInjectedConnector(connectors);
+                if (connector) { connect({ connector }); return; }
+                window.ethereum?.request({ method: "eth_requestAccounts" }).catch((err) => {
+                  setWalletError(err.code === 4001 ? "Connection rejected." : "Failed to connect.");
+                });
+              }}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all"
+              style={
+                account
+                  ? { borderColor: "#e2e8f0", color: "#475569", backgroundColor: "#f8fafc" }
+                  : { backgroundColor: "#0f172a", color: "white", borderColor: "#0f172a" }
+              }
+            >
+              {account ? (
+                <>
+                  <User size={12} />
+                  <span className="font-mono">{account.substring(0, 6)}…{account.substring(38)}</span>
+                </>
+              ) : (
+                <>
+                  <Wallet size={12} />
+                  Connect
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => setUserRole(null)}
+              className="text-xs text-slate-400 hover:text-slate-600 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Sub-header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6 text-sm text-slate-600">
-          <span>
-            <strong className="text-slate-800">{notices.length}</strong> notices published
-          </span>
-          {searchQuery && (
-            <span className="text-slate-500">
-              &bull; <strong className="text-slate-700">{filteredNotices.length}</strong> matching results
-            </span>
-          )}
-          {userRole === "admin" && (
-            <span className="ml-auto flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-              <User size={11} />
-              Admin Mode
-            </span>
-          )}
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-base font-bold text-slate-800">Official Notice Board</h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {notices.length} notice{notices.length !== 1 ? "s" : ""} published on-chain
+              {searchQuery && filteredNotices.length !== notices.length && (
+                <> · <span className="text-slate-600 font-medium">{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
+              )}
+            </p>
+          </div>
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Connected to blockchain" />
         </div>
       </div>
 
@@ -265,27 +211,6 @@ export default function App() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded flex items-center justify-center" style={{ backgroundColor: '#163068' }}>
-              <BookOpen size={14} className="text-yellow-300" />
-            </div>
-            <span className="font-medium text-slate-700">BlockNotice</span>
-            <span className="text-slate-300">&bull;</span>
-            <span>Official Decentralized Notice System</span>
-          </div>
-          <div className="flex items-center gap-4 text-xs text-slate-400">
-            <span>Secured by Ethereum Blockchain</span>
-            <span className="text-slate-300">&bull;</span>
-            <span>IPFS Content Addressing</span>
-            <span className="text-slate-300">&bull;</span>
-            <span>&copy; {new Date().getFullYear()}</span>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
