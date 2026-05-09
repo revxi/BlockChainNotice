@@ -12,30 +12,34 @@ export default function AdminPanel({ onPublish, loading }) {
 
   return (
     <aside className="lg:col-span-4">
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm sticky top-24 overflow-hidden">
+      <div className="rounded-xl border shadow-sm sticky top-24 overflow-hidden" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)" }}>
         {/* Panel header */}
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="px-5 py-4 border-b flex items-center gap-3" style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-color)" }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#163068' }}>
             <ShieldCheck size={16} className="text-yellow-300" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-800">Issue Official Notice</h3>
-            <p className="text-xs text-slate-500">Admin access only</p>
+            <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Issue Official Notice</h3>
+            <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>Admin access only</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="notice-title" className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
-              <Type size={12} className="text-slate-400" />
+            <label htmlFor="notice-title" className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
+              <Type size={12} style={{ color: "var(--text-tertiary)" }} />
               Notice Title
             </label>
             <input
               id="notice-title"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 transition-all bg-white"
-              style={{ '--tw-ring-color': '#163068' + '33' }}
+              className="w-full border rounded-lg px-3 py-2.5 text-sm outline-none transition-all"
+              style={{
+                backgroundColor: "var(--input-bg)",
+                borderColor: "var(--input-border)",
+                color: "var(--text-primary)",
+              }}
               onFocus={e => e.target.style.borderColor = '#163068'}
-              onBlur={e => e.target.style.borderColor = ''}
+              onBlur={e => e.target.style.borderColor = 'var(--input-border)'}
               placeholder="e.g. Exam Schedule – Spring 2025"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -45,15 +49,20 @@ export default function AdminPanel({ onPublish, loading }) {
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="notice-content" className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
-              <FileText size={12} className="text-slate-400" />
+            <label htmlFor="notice-content" className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
+              <FileText size={12} style={{ color: "var(--text-tertiary)" }} />
               Notice Content
             </label>
             <textarea
               id="notice-content"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all bg-white min-h-[140px] resize-none"
+              className="w-full border rounded-lg px-3 py-2.5 text-sm outline-none transition-all min-h-[140px] resize-none"
+              style={{
+                backgroundColor: "var(--input-bg)",
+                borderColor: "var(--input-border)",
+                color: "var(--text-primary)",
+              }}
               onFocus={e => e.target.style.borderColor = '#163068'}
-              onBlur={e => e.target.style.borderColor = ''}
+              onBlur={e => e.target.style.borderColor = 'var(--input-border)'}
               placeholder="Enter the full details of this notice..."
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
@@ -82,7 +91,7 @@ export default function AdminPanel({ onPublish, loading }) {
             )}
           </button>
 
-          <p className="text-xs text-center text-slate-400 pt-1">
+          <p className="text-xs text-center pt-1" style={{ color: "var(--text-tertiary)" }}>
             This notice will be permanently recorded on the blockchain and cannot be modified.
           </p>
         </form>
