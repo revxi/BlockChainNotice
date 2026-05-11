@@ -7,6 +7,7 @@ import { Search, Shield, Wallet, User, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
+import ThemeSelector from "./components/ThemeSelector";
 
 const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
@@ -100,10 +101,10 @@ export default function App() {
   if (!userRole) return <Login onLogin={setUserRole} />;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-primary)" }}>
 
       {/* Navbar */}
-      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <nav className="sticky top-0 z-50 border-b" style={{ backgroundColor: "var(--bg-primary)", borderBottomColor: "var(--border-color)" }}>
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
           {/* Brand */}
@@ -112,7 +113,7 @@ export default function App() {
               style={{ backgroundColor: "#c9a84c" }}>
               <Shield size={14} className="text-white" />
             </div>
-            <span className="font-bold text-slate-800 text-sm tracking-tight">BlockNotice</span>
+            <span className="font-bold text-sm tracking-tight" style={{ color: "var(--text-primary)" }}>BlockNotice</span>
             {userRole === "admin" && (
               <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                 Admin
@@ -122,9 +123,14 @@ export default function App() {
 
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} style={{ color: "var(--text-tertiary)" }} />
             <input
-              className="w-full border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all bg-slate-50"
+              className="w-full border rounded-lg pl-9 pr-4 py-1.5 text-sm outline-none focus:ring-1 transition-all"
+              style={{
+                backgroundColor: "var(--input-bg)",
+                borderColor: "var(--input-border)",
+                color: "var(--text-primary)",
+              }}
               placeholder="Search notices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -139,6 +145,8 @@ export default function App() {
                 <span className="hidden sm:inline truncate max-w-[160px]">{walletError}</span>
               </div>
             )}
+
+            <ThemeSelector />
 
             <button
               onClick={() => {
@@ -157,7 +165,7 @@ export default function App() {
               className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all"
               style={
                 account
-                  ? { borderColor: "#e2e8f0", color: "#475569", backgroundColor: "#f8fafc" }
+                  ? { borderColor: "var(--border-color)", color: "var(--text-secondary)", backgroundColor: "var(--bg-secondary)" }
                   : { backgroundColor: "#0f172a", color: "white", borderColor: "#0f172a" }
               }
             >
@@ -176,7 +184,11 @@ export default function App() {
 
             <button
               onClick={() => setUserRole(null)}
-              className="text-xs text-slate-400 hover:text-slate-600 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200"
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
+              style={{
+                color: "var(--text-tertiary)",
+                borderColor: "var(--border-color)",
+              }}
             >
               Sign out
             </button>
@@ -185,14 +197,14 @@ export default function App() {
       </nav>
 
       {/* Sub-header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="border-b" style={{ backgroundColor: "var(--bg-primary)", borderBottomColor: "var(--border-color)" }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-base font-bold text-slate-800">Official Notice Board</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h1 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>Official Notice Board</h1>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
               {notices.length} notice{notices.length !== 1 ? "s" : ""} published on-chain
               {searchQuery && filteredNotices.length !== notices.length && (
-                <> · <span className="text-slate-600 font-medium">{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
+                <> · <span className="font-medium" style={{ color: "var(--text-secondary)" }}>{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
               )}
             </p>
           </div>
