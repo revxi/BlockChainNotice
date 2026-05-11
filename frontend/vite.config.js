@@ -11,6 +11,7 @@ function removeCrossoriginFromCss() {
 }
 
 export default defineConfig({
+  base: './',
   plugins: [react(), removeCrossoriginFromCss()],
   server: {
     host: '0.0.0.0',
