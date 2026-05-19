@@ -35,7 +35,7 @@ export default function Login({ onLogin }) {
       if (account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else if (!error) {
-        setError("Access denied. This wallet is not the authorized administrator.");
+        setError("Access denied. This wallet is not an authorized faculty member.");
       }
     }
   }, [account, view, onLogin, isPending, adminAddress, error]);
@@ -46,7 +46,7 @@ export default function Login({ onLogin }) {
       if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else {
-        setError("Access denied. This wallet is not the authorized administrator.");
+        setError("Access denied. This wallet is not an authorized faculty member.");
       }
       return;
     }
@@ -153,14 +153,14 @@ export default function Login({ onLogin }) {
                 <ArrowRight size={16} className="text-white/30 group-hover:text-white/60 group-hover:translate-x-0.5 transition-all" />
               </button>
 
-              {/* Admin button */}
+              {/* Faculty button */}
               <button
                 onClick={() => { setView("admin"); setError(""); }}
                 className="group w-full flex items-center justify-between px-5 py-4 rounded-xl border transition-all duration-200"
                 style={{ backgroundColor: "#c9a84c", borderColor: "#c9a84c" }}
               >
                 <div className="text-left">
-                  <div className="text-black font-semibold text-sm">Administrator</div>
+                  <div className="text-black font-semibold text-sm">Faculty</div>
                   <div className="text-black/50 text-xs mt-0.5">Publish & manage notices</div>
                 </div>
                 <ArrowRight size={16} className="text-black/50 group-hover:translate-x-0.5 transition-transform" />
@@ -182,7 +182,7 @@ export default function Login({ onLogin }) {
               </button>
 
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
+                <h1 className="text-2xl font-bold text-white mb-2">Faculty Access</h1>
                 <p className="text-white/40 text-sm">
                   Connect your authorized wallet to continue.
                 </p>
@@ -219,7 +219,7 @@ export default function Login({ onLogin }) {
               )}
 
               <p className="text-center text-white/20 text-xs pt-2">
-                Only the registered admin wallet can gain access.
+                Only the registered faculty wallet can gain access.
               </p>
             </div>
           )}
