@@ -9,7 +9,10 @@ import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
 import ThemeSelector from "./components/ThemeSelector";
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+if (!CONTRACT_ADDRESS) {
+  console.warn("VITE_CONTRACT_ADDRESS environment variable is not defined");
+}
 
 export default function App() {
   const { address: account } = useAccount();
@@ -53,13 +56,14 @@ export default function App() {
 
   const notices = useMemo(() => {
     if (!noticesData) return [];
+    const dateFormatter = new Intl.DateTimeFormat();
     return noticesData.reduceRight((acc, n) => {
       if (n) {
         acc.push({
           id: n.id.toString(),
           title: n.title,
           hash: n.content,
-          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+          date: dateFormatter.format(Number(n.timestamp) * 1000),
         });
       }
       return acc;
@@ -78,9 +82,9 @@ export default function App() {
 
   const handlePublish = useCallback(
     async (formData) => {
-      if (!account) return alert("Connect Wallet!");
+      if (!account) throw new Error("Connect Wallet!");
       const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
-      if (userRole !== "admin" || !isAdmin) return alert("Unauthorized: Admins only.");
+      if (userRole !== "admin" || !isAdmin) throw new Error("Unauthorized: Admins only.");
       try {
         const secureHash = await generateIPFSHash(formData.content);
         await writeContractAsync({
@@ -91,8 +95,14 @@ export default function App() {
         });
         fetchNotices();
       } catch (err) {
+        if (import.meta.env?.DEV) {
+          console.error("Publish error:", err);
+          alert("Error publishing notice (Check console for details)");
+        } else {
+          alert("Error publishing notice. Please try again.");
+        }
         console.error("Publish error:", err);
-        alert("Error publishing notice (Check console for details)");
+        throw new Error("Error publishing notice (Check console for details)");
       }
     },
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]
@@ -101,19 +111,18 @@ export default function App() {
   if (!userRole) return <Login onLogin={setUserRole} />;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-primary)" }}>
+    <div className="min-h-screen flex flex-col bg-primary">
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b" style={{ backgroundColor: "var(--bg-primary)", borderBottomColor: "var(--border-color)" }}>
+      <nav className="sticky top-0 z-50 border-b bg-primary border-theme">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
           {/* Brand */}
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: "#c9a84c" }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#c9a84c]">
               <Shield size={14} className="text-white" />
             </div>
-            <span className="font-bold text-sm tracking-tight" style={{ color: "var(--text-primary)" }}>BlockNotice</span>
+            <span className="font-bold text-sm tracking-tight text-primary">BlockNotice</span>
             {userRole === "admin" && (
               <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                 Admin
@@ -123,14 +132,9 @@ export default function App() {
 
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} style={{ color: "var(--text-tertiary)" }} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={14} />
             <input
-              className="w-full border rounded-lg pl-9 pr-4 py-1.5 text-sm outline-none focus:ring-1 transition-all"
-              style={{
-                backgroundColor: "var(--input-bg)",
-                borderColor: "var(--input-border)",
-                color: "var(--text-primary)",
-              }}
+              className="w-full border rounded-lg pl-9 pr-4 py-1.5 text-sm outline-none focus:ring-1 transition-all bg-input border-input text-primary"
               placeholder="Search notices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -162,12 +166,11 @@ export default function App() {
                   setWalletError(err.code === 4001 ? "Connection rejected." : "Failed to connect.");
                 });
               }}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all"
-              style={
+              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all ${
                 account
-                  ? { borderColor: "var(--border-color)", color: "var(--text-secondary)", backgroundColor: "var(--bg-secondary)" }
-                  : { backgroundColor: "#0f172a", color: "white", borderColor: "#0f172a" }
-              }
+                  ? "border-theme text-secondary bg-secondary"
+                  : "bg-slate-900 text-white border-slate-900"
+              }`}
             >
               {account ? (
                 <>
@@ -184,11 +187,7 @@ export default function App() {
 
             <button
               onClick={() => setUserRole(null)}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
-              style={{
-                color: "var(--text-tertiary)",
-                borderColor: "var(--border-color)",
-              }}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors text-tertiary border-theme"
             >
               Sign out
             </button>
@@ -197,14 +196,14 @@ export default function App() {
       </nav>
 
       {/* Sub-header */}
-      <div className="border-b" style={{ backgroundColor: "var(--bg-primary)", borderBottomColor: "var(--border-color)" }}>
+      <div className="border-b bg-primary border-theme">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>Official Notice Board</h1>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+            <h1 className="text-base font-bold text-primary">Official Notice Board</h1>
+            <p className="text-xs mt-0.5 text-tertiary">
               {notices.length} notice{notices.length !== 1 ? "s" : ""} published on-chain
               {searchQuery && filteredNotices.length !== notices.length && (
-                <> · <span className="font-medium" style={{ color: "var(--text-secondary)" }}>{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
+                <> · <span className="font-medium text-secondary">{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
               )}
             </p>
           </div>

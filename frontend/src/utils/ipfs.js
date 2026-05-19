@@ -1,21 +1,21 @@
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 function base58Encode(buffer) {
-  let result = '';
   let x = BigInt('0x' + Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
 
+  const resultArr = [];
   while (x > 0n) {
-    result = BASE58_ALPHABET[Number(x % 58n)] + result;
+    resultArr.push(BASE58_ALPHABET[Number(x % 58n)]);
     x = x / 58n;
   }
 
   // Handle leading zeros in buffer
   const uint8View = new Uint8Array(buffer);
   for (let i = 0; i < uint8View.length && uint8View[i] === 0; i++) {
-    result = '1' + result;
+    resultArr.push('1');
   }
 
-  return result;
+  return resultArr.reverse().join('');
 }
 
 /**

@@ -18,6 +18,8 @@ describe("BlockNotice", function () {
     it("Should set the right admin", async function () {
       expect(await blockNotice.admin()).to.equal(admin.address);
     });
+  it("Should set the right admin", async function () {
+    expect(await blockNotice.admin()).to.equal(admin.address);
   });
 
   describe("postNotice", function () {
@@ -25,6 +27,7 @@ describe("BlockNotice", function () {
       const title = "Test Notice";
       const content = "This is a test notice content.";
 
+      // Capture the transaction
       const tx = await blockNotice.connect(admin).postNotice(title, content);
       const receipt = await tx.wait();
       const blockData = await ethers.provider.getBlock(receipt.blockNumber);
@@ -40,6 +43,7 @@ describe("BlockNotice", function () {
       expect(notice.title).to.equal(title);
       expect(notice.content).to.equal(content);
       expect(notice.timestamp).to.equal(BigInt(timestamp));
+      expect(notice.timestamp).to.equal(timestamp);
 
       const userNotices = await blockNotice.getUserNotices(admin.address);
       expect(userNotices.length).to.equal(1);
@@ -92,6 +96,23 @@ describe("BlockNotice", function () {
       await expect(
         blockNotice.connect(admin).postNotice("Title", longContent)
       ).to.be.revertedWith("Content is too long");
+        await blockNotice.connect(admin).postNotice("Title 1", "Content 1");
+        await blockNotice.connect(admin).postNotice("Title 2", "Content 2");
+
+        const count = await blockNotice.getNoticeCount();
+        expect(count).to.equal(2n);
+
+        const userNotices = await blockNotice.getUserNotices(admin.address);
+        expect(userNotices.length).to.equal(2);
+        expect(userNotices[0]).to.equal(0n);
+        expect(userNotices[1]).to.equal(1n);
+    });
+
+    it("Should handle empty title and content", async function () {
+        await blockNotice.connect(admin).postNotice("", "");
+        const notice = await blockNotice.notices(0);
+        expect(notice.title).to.equal("");
+        expect(notice.content).to.equal("");
     });
   });
 
@@ -125,6 +146,17 @@ describe("BlockNotice", function () {
       await expect(blockNotice.getNotice(999n))
         .to.be.revertedWithCustomError(blockNotice, "NoticeDoesNotExist")
         .withArgs(999n);
+    it("Should revert if notice does not exist", async function () {
+      await expect(blockNotice.getNotice(0n))
+        .to.be.revertedWithCustomError(blockNotice, "NoticeDoesNotExist")
+        .withArgs(0n);
+    });
+
+    it("Should return the correct notice", async function () {
+      await blockNotice.connect(admin).postNotice("Title", "Content");
+      const notice = await blockNotice.getNotice(0n);
+      expect(notice.title).to.equal("Title");
+      expect(notice.content).to.equal("Content");
     });
   });
 });
