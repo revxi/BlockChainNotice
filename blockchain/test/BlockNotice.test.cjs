@@ -14,6 +14,10 @@ describe("BlockNotice", function () {
     await blockNotice.waitForDeployment();
   });
 
+  describe("Deployment", function () {
+    it("Should set the right admin", async function () {
+      expect(await blockNotice.admin()).to.equal(admin.address);
+    });
   it("Should set the right admin", async function () {
     expect(await blockNotice.admin()).to.equal(admin.address);
   });
@@ -25,28 +29,22 @@ describe("BlockNotice", function () {
 
       // Capture the transaction
       const tx = await blockNotice.connect(admin).postNotice(title, content);
-
-      // Wait for the transaction to be mined
       const receipt = await tx.wait();
-
-      // Get the block timestamp
       const blockData = await ethers.provider.getBlock(receipt.blockNumber);
       const timestamp = blockData.timestamp;
 
-      // Check for the event
       await expect(tx)
         .to.emit(blockNotice, "NoticePosted")
         .withArgs(0n, admin.address, title, timestamp);
 
-      // Check if the notice is stored correctly
       const notice = await blockNotice.notices(0);
       expect(notice.id).to.equal(0n);
       expect(notice.author).to.equal(admin.address);
       expect(notice.title).to.equal(title);
       expect(notice.content).to.equal(content);
+      expect(notice.timestamp).to.equal(BigInt(timestamp));
       expect(notice.timestamp).to.equal(timestamp);
 
-      // Check if the notice ID is added to userNotices
       const userNotices = await blockNotice.getUserNotices(admin.address);
       expect(userNotices.length).to.equal(1);
       expect(userNotices[0]).to.equal(0n);
@@ -62,6 +60,42 @@ describe("BlockNotice", function () {
     });
 
     it("Should handle multiple notices from admin", async function () {
+      await blockNotice.connect(admin).postNotice("Title 1", "Content 1");
+      await blockNotice.connect(admin).postNotice("Title 2", "Content 2");
+
+      const count = await blockNotice.getNoticeCount();
+      expect(count).to.equal(2n);
+
+      const userNotices = await blockNotice.getUserNotices(admin.address);
+      expect(userNotices.length).to.equal(2);
+      expect(userNotices[0]).to.equal(0n);
+      expect(userNotices[1]).to.equal(1n);
+    });
+
+    it("Should revert if title is empty", async function () {
+      await expect(
+        blockNotice.connect(admin).postNotice("", "Content")
+      ).to.be.revertedWith("Title cannot be empty");
+    });
+
+    it("Should revert if content is empty", async function () {
+      await expect(
+        blockNotice.connect(admin).postNotice("Title", "")
+      ).to.be.revertedWith("Content cannot be empty");
+    });
+
+    it("Should revert if title is too long", async function () {
+      const longTitle = "a".repeat(101);
+      await expect(
+        blockNotice.connect(admin).postNotice(longTitle, "Content")
+      ).to.be.revertedWith("Title is too long");
+    });
+
+    it("Should revert if content is too long", async function () {
+      const longContent = "a".repeat(1001);
+      await expect(
+        blockNotice.connect(admin).postNotice("Title", longContent)
+      ).to.be.revertedWith("Content is too long");
         await blockNotice.connect(admin).postNotice("Title 1", "Content 1");
         await blockNotice.connect(admin).postNotice("Title 2", "Content 2");
 
@@ -101,6 +135,17 @@ describe("BlockNotice", function () {
   });
 
   describe("getNotice", function () {
+    it("Should return the correct notice", async function () {
+      await blockNotice.connect(admin).postNotice("Title", "Content");
+      const notice = await blockNotice.getNotice(0);
+      expect(notice.title).to.equal("Title");
+      expect(notice.content).to.equal("Content");
+    });
+
+    it("Should revert if notice does not exist", async function () {
+      await expect(blockNotice.getNotice(999n))
+        .to.be.revertedWithCustomError(blockNotice, "NoticeDoesNotExist")
+        .withArgs(999n);
     it("Should revert if notice does not exist", async function () {
       await expect(blockNotice.getNotice(0n))
         .to.be.revertedWithCustomError(blockNotice, "NoticeDoesNotExist")
