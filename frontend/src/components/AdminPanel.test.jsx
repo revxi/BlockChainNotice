@@ -10,7 +10,7 @@ describe('AdminPanel Component', () => {
   it('renders the form with initial empty state', () => {
     render(<AdminPanel onPublish={mockOnPublish} loading={false} />);
 
-    expect(screen.getByText(/Issue New Notice/i)).toBeInTheDocument();
+    expect(screen.getByText(/Issue Official Notice/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Notice Title/i)).toHaveValue('');
     expect(screen.getByLabelText(/Content/i)).toHaveValue('');
     expect(screen.getByRole('button', { name: /Publish Notice/i })).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("AdminPanel Component V2", () => {
   it("renders the form elements correctly", () => {
     render(<AdminPanel onPublish={vi.fn()} loading={false} />);
 
-    expect(screen.getByText("Issue New Notice")).toBeInTheDocument();
+    expect(screen.getByText("Issue Official Notice")).toBeInTheDocument();
     expect(screen.getByLabelText(/Notice Title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Content/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Publish Notice/i })).toBeInTheDocument();

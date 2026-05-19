@@ -14,12 +14,7 @@ export default function ThemeSelector() {
   return (
     <div className="relative group">
       <button
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-700"
-        style={{
-          borderColor: "var(--border-color)",
-          color: "var(--text-secondary)",
-          backgroundColor: "var(--bg-secondary)",
-        }}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all hover:bg-slate-100 dark:hover:bg-slate-700 border-theme text-secondary bg-secondary"
         title="Toggle theme"
       >
         {theme === "light" && <Sun size={14} />}
@@ -30,20 +25,15 @@ export default function ThemeSelector() {
 
       {/* Dropdown menu */}
       <div
-        className="absolute right-0 mt-1 w-40 rounded-lg border shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border-color)",
-        }}
+        className="absolute right-0 mt-1 w-40 rounded-lg border shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 bg-primary border-theme"
       >
         {themes.map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             onClick={() => changeTheme(value)}
-            className="w-full px-4 py-2 flex items-center gap-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg transition-colors text-left"
-            style={{
-              color: theme === value ? "#c9a84c" : "var(--text-primary)",
-            }}
+            className={`w-full px-4 py-2 flex items-center gap-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-700 first:rounded-t-lg last:rounded-b-lg transition-colors text-left ${
+              theme === value ? "text-[#c9a84c]" : "text-primary"
+            }`}
           >
             <Icon size={14} />
             <span>{label}</span>

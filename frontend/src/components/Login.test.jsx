@@ -31,7 +31,7 @@ describe('Login Component', () => {
     const mockOnLogin = vi.fn();
     render(<Login onLogin={mockOnLogin} />);
 
-    const loginButton = screen.getByRole('button', { name: /Enter Dashboard/i });
+    const loginButton = screen.getByRole('button', { name: /Student \/ Public/i });
     fireEvent.click(loginButton);
 
     expect(mockOnLogin).toHaveBeenCalledWith('user');
@@ -45,7 +45,7 @@ describe('Login Component', () => {
     render(<Login onLogin={mockOnLogin} />);
 
     // Switch to Admin Portal tab
-    const adminTab = screen.getByRole('button', { name: /Admin Portal/i });
+    const adminTab = screen.getByRole('button', { name: /Administrator/i });
     fireEvent.click(adminTab);
 
     const verifyButton = screen.getByRole('button', { name: /Verify & Enter/i });
@@ -62,7 +62,7 @@ describe('Login Component', () => {
     render(<Login onLogin={mockOnLogin} />);
 
     // Switch to Admin Portal tab
-    const adminTab = screen.getByRole('button', { name: /Admin Portal/i });
+    const adminTab = screen.getByRole('button', { name: /Administrator/i });
     fireEvent.click(adminTab);
 
     const verifyButton = screen.getByRole('button', { name: /Verify & Enter/i });
@@ -71,7 +71,7 @@ describe('Login Component', () => {
     expect(mockOnLogin).not.toHaveBeenCalled();
 
     await waitFor(() => {
-      expect(screen.getByText(/Access Denied: Connected wallet is not the authorized admin/i)).toBeInTheDocument();
+      expect(screen.getByText(/Access denied. This wallet is not the authorized administrator./i)).toBeInTheDocument();
     });
   });
 
@@ -83,7 +83,7 @@ describe('Login Component', () => {
     render(<Login onLogin={mockOnLogin} />);
 
     // Switch to Admin Portal tab
-    const adminTab = screen.getByRole('button', { name: /Admin Portal/i });
+    const adminTab = screen.getByRole('button', { name: /Administrator/i });
     fireEvent.click(adminTab);
 
     await waitFor(() => {
