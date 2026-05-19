@@ -78,9 +78,9 @@ export default function App() {
 
   const handlePublish = useCallback(
     async (formData) => {
-      if (!account) return alert("Connect Wallet!");
+      if (!account) throw new Error("Connect Wallet!");
       const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
-      if (userRole !== "admin" || !isAdmin) return alert("Unauthorized: Admins only.");
+      if (userRole !== "admin" || !isAdmin) throw new Error("Unauthorized: Admins only.");
       try {
         const secureHash = await generateIPFSHash(formData.content);
         await writeContractAsync({
@@ -92,7 +92,7 @@ export default function App() {
         fetchNotices();
       } catch (err) {
         console.error("Publish error:", err);
-        alert("Error publishing notice (Check console for details)");
+        throw new Error("Error publishing notice (Check console for details)");
       }
     },
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]
