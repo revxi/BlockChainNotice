@@ -53,13 +53,14 @@ export default function App() {
 
   const notices = useMemo(() => {
     if (!noticesData) return [];
+    const dateFormatter = new Intl.DateTimeFormat();
     return noticesData.reduceRight((acc, n) => {
       if (n) {
         acc.push({
           id: n.id.toString(),
           title: n.title,
           hash: n.content,
-          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+          date: dateFormatter.format(Number(n.timestamp) * 1000),
         });
       }
       return acc;
