@@ -4,6 +4,7 @@ import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors"
 import { AlertCircle, Shield, ArrowRight, Wallet } from "lucide-react";
 import ABI from "../utils/abi.json";
 
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
 const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS;
 
