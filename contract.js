@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-const contractAddress = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+const contractAddress = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_CONTRACT_ADDRESS) || (typeof process !== 'undefined' && process.env?.VITE_CONTRACT_ADDRESS) || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 const abi = [
   "function getAllNotices() view returns (tuple(uint id,string title,string content,uint timestamp)[])",
