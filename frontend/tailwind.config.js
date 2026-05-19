@@ -22,6 +22,21 @@ export default {
           600: '#b87d0b',
         },
       },
+      backgroundColor: {
+        primary: 'var(--bg-primary)',
+        secondary: 'var(--bg-secondary)',
+        tertiary: 'var(--bg-tertiary)',
+        input: 'var(--input-bg)',
+      },
+      textColor: {
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        tertiary: 'var(--text-tertiary)',
+      },
+      borderColor: {
+        theme: 'var(--border-color)',
+        input: 'var(--input-border)',
+      },
     },
   },
   plugins: [],

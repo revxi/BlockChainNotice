@@ -12,18 +12,18 @@ export default function NoticeFeed({ filteredNotices, searchQuery }) {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed shadow-sm" style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border-color)" }}>
-          <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 border" style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-color)" }}>
+        <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed shadow-sm bg-primary border-theme">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 border bg-secondary border-theme">
             {searchQuery ? (
-              <SearchX size={24} style={{ color: "var(--text-tertiary)" }} />
+              <SearchX size={24} className="text-tertiary" />
             ) : (
-              <FileText size={24} style={{ color: "var(--text-tertiary)" }} />
+              <FileText size={24} className="text-tertiary" />
             )}
           </div>
-          <h3 className="text-base font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+          <h3 className="text-base font-bold mb-1 text-primary">
             {searchQuery ? "No Results Found" : "No Notices Published Yet"}
           </h3>
-          <p className="text-sm max-w-xs leading-relaxed" style={{ color: "var(--text-tertiary)" }}>
+          <p className="text-sm max-w-xs leading-relaxed text-tertiary">
             {searchQuery
               ? `No notices match "${searchQuery}". Try searching by title, ID, or date.`
               : "No official notices have been published to the blockchain ledger."}
