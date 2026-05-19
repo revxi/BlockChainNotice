@@ -94,6 +94,12 @@ export default function App() {
         });
         fetchNotices();
       } catch (err) {
+        if (import.meta.env?.DEV) {
+          console.error("Publish error:", err);
+          alert("Error publishing notice (Check console for details)");
+        } else {
+          alert("Error publishing notice. Please try again.");
+        }
         console.error("Publish error:", err);
         throw new Error("Error publishing notice (Check console for details)");
       }
