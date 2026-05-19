@@ -10,7 +10,7 @@ describe('AdminPanel Component', () => {
   it('renders the form with initial empty state', () => {
     render(<AdminPanel onPublish={mockOnPublish} loading={false} />);
 
-    expect(screen.getByText(/Issue New Notice/i)).toBeInTheDocument();
+    expect(screen.getByText(/Issue Official Notice/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Notice Title/i)).toHaveValue('');
     expect(screen.getByLabelText(/Content/i)).toHaveValue('');
     expect(screen.getByRole('button', { name: /Publish Notice/i })).toBeInTheDocument();
@@ -51,6 +51,44 @@ describe('AdminPanel Component', () => {
     });
   });
 
+  it('displays error message when onPublish throws an error', async () => {
+    const errorPublish = vi.fn().mockRejectedValue(new Error("Test error message"));
+    render(<AdminPanel onPublish={errorPublish} loading={false} />);
+
+    const titleInput = screen.getByLabelText(/Notice Title/i);
+    const contentInput = screen.getByLabelText(/Content/i);
+    const submitButton = screen.getByRole('button', { name: /Publish Notice/i });
+
+    fireEvent.change(titleInput, { target: { value: 'Error Title' } });
+    fireEvent.change(contentInput, { target: { value: 'Error Content' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test error message")).toBeInTheDocument();
+    });
+  });
+
+  it('clears error message on input change', async () => {
+    const errorPublish = vi.fn().mockRejectedValue(new Error("Test error message"));
+    render(<AdminPanel onPublish={errorPublish} loading={false} />);
+
+    const titleInput = screen.getByLabelText(/Notice Title/i);
+    const contentInput = screen.getByLabelText(/Content/i);
+    const submitButton = screen.getByRole('button', { name: /Publish Notice/i });
+
+    fireEvent.change(titleInput, { target: { value: 'Error Title' } });
+    fireEvent.change(contentInput, { target: { value: 'Error Content' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Test error message")).toBeInTheDocument();
+    });
+
+    fireEvent.change(titleInput, { target: { value: 'New Title' } });
+
+    expect(screen.queryByText("Test error message")).not.toBeInTheDocument();
+  });
+
   it('disables inputs and button when loading is true', () => {
     render(<AdminPanel onPublish={mockOnPublish} loading={true} />);
 
@@ -65,7 +103,7 @@ describe("AdminPanel Component V2", () => {
   it("renders the form elements correctly", () => {
     render(<AdminPanel onPublish={vi.fn()} loading={false} />);
 
-    expect(screen.getByText("Issue New Notice")).toBeInTheDocument();
+    expect(screen.getByText("Issue Official Notice")).toBeInTheDocument();
     expect(screen.getByLabelText(/Notice Title/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Content/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Publish Notice/i })).toBeInTheDocument();
