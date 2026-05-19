@@ -10,6 +10,11 @@ import Login from "./components/Login";
 import ThemeSelector from "./components/ThemeSelector";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS;
+const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS;
+if (!CONTRACT_ADDRESS) {
+  console.warn("VITE_CONTRACT_ADDRESS environment variable is not defined");
+}
 
 export default function App() {
   const { address: account } = useAccount();
@@ -53,13 +58,14 @@ export default function App() {
 
   const notices = useMemo(() => {
     if (!noticesData) return [];
+    const dateFormatter = new Intl.DateTimeFormat();
     return noticesData.reduceRight((acc, n) => {
       if (n) {
         acc.push({
           id: n.id.toString(),
           title: n.title,
           hash: n.content,
-          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+          date: dateFormatter.format(Number(n.timestamp) * 1000),
         });
       }
       return acc;
@@ -78,9 +84,9 @@ export default function App() {
 
   const handlePublish = useCallback(
     async (formData) => {
-      if (!account) return alert("Connect Wallet!");
+      if (!account) throw new Error("Connect Wallet!");
       const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
-      if (userRole !== "admin" || !isAdmin) return alert("Unauthorized: Admins only.");
+      if (userRole !== "admin" || !isAdmin) throw new Error("Unauthorized: Admins only.");
       try {
         const secureHash = await generateIPFSHash(formData.content);
         await writeContractAsync({
@@ -91,8 +97,14 @@ export default function App() {
         });
         fetchNotices();
       } catch (err) {
+        if (import.meta.env?.DEV) {
+          console.error("Publish error:", err);
+          alert("Error publishing notice (Check console for details)");
+        } else {
+          alert("Error publishing notice. Please try again.");
+        }
         console.error("Publish error:", err);
-        alert("Error publishing notice (Check console for details)");
+        throw new Error("Error publishing notice (Check console for details)");
       }
     },
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]

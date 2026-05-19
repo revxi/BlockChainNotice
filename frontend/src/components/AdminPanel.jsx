@@ -1,13 +1,19 @@
 import React, { useState } from "react";
-import { Loader2, Send, Type, FileText, ShieldCheck } from "lucide-react";
+import { Loader2, Send, Type, FileText, ShieldCheck, AlertCircle } from "lucide-react";
 
 export default function AdminPanel({ onPublish, loading }) {
   const [formData, setFormData] = useState({ title: "", content: "" });
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await onPublish(formData);
-    setFormData({ title: "", content: "" });
+    setError("");
+    try {
+      await onPublish(formData);
+      setFormData({ title: "", content: "" });
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -25,6 +31,13 @@ export default function AdminPanel({ onPublish, loading }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          {error && (
+            <div className="flex items-center gap-1.5 text-red-600 text-xs bg-red-50 border border-red-200 px-3 py-2 rounded-lg">
+              <AlertCircle size={14} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <label htmlFor="notice-title" className="text-xs font-semibold uppercase tracking-wide flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
               <Type size={12} style={{ color: "var(--text-tertiary)" }} />
@@ -42,7 +55,10 @@ export default function AdminPanel({ onPublish, loading }) {
               onBlur={e => e.target.style.borderColor = 'var(--input-border)'}
               placeholder="e.g. Exam Schedule – Spring 2025"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, title: e.target.value });
+                if (error) setError("");
+              }}
               required
               disabled={loading}
             />
@@ -65,7 +81,10 @@ export default function AdminPanel({ onPublish, loading }) {
               onBlur={e => e.target.style.borderColor = 'var(--input-border)'}
               placeholder="Enter the full details of this notice..."
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, content: e.target.value });
+                if (error) setError("");
+              }}
               required
               disabled={loading}
             />
