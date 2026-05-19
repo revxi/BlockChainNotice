@@ -91,8 +91,12 @@ export default function App() {
         });
         fetchNotices();
       } catch (err) {
-        console.error("Publish error:", err);
-        alert("Error publishing notice (Check console for details)");
+        if (import.meta.env?.DEV) {
+          console.error("Publish error:", err);
+          alert("Error publishing notice (Check console for details)");
+        } else {
+          alert("Error publishing notice. Please try again.");
+        }
       }
     },
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]
