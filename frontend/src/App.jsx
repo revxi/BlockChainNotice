@@ -5,6 +5,7 @@ import { findInjectedConnector, isMetaMaskInstalled } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
 import { Search, Shield, Wallet, User, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
+import AdminDashboard from "./components/AdminDashboard";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
 import ThemeSelector from "./components/ThemeSelector";
@@ -108,7 +109,19 @@ export default function App() {
     [account, userRole, writeContractAsync, fetchNotices, adminAddress]
   );
 
+
   if (!userRole) return <Login onLogin={setUserRole} />;
+
+  if (userRole === "admin") {
+    return (
+      <AdminDashboard
+        notices={filteredNotices}
+        onPublish={handlePublish}
+        isPublishing={isPublishing}
+        onSignOut={() => setUserRole(null)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-primary">
@@ -214,10 +227,7 @@ export default function App() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
         <div className="grid lg:grid-cols-12 gap-6 items-start">
-          {userRole === "admin" && (
-            <AdminPanel onPublish={handlePublish} loading={isPublishing} />
-          )}
-          <div className={userRole === "admin" ? "lg:col-span-8" : "lg:col-span-12"}>
+          <div className="lg:col-span-12">
             <NoticeFeed filteredNotices={filteredNotices} searchQuery={searchQuery} />
           </div>
         </div>
