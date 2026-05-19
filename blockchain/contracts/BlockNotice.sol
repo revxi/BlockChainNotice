@@ -33,16 +33,12 @@ contract BlockNotice {
         uint256 timestamp
     );
 
-    constructor() {
-        admin = msg.sender;
-    }
-
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin can perform this action");
-        _;
-    }
-
     function postNotice(string memory _title, string memory _content) public onlyAdmin {
+        require(bytes(_title).length > 0, "Title cannot be empty");
+        require(bytes(_content).length > 0, "Content cannot be empty");
+        require(bytes(_title).length <= 100, "Title is too long");
+        require(bytes(_content).length <= 1000, "Content is too long");
+
         uint256 noticeId = notices.length;
         notices.push(
             Notice(noticeId, msg.sender, _title, _content, block.timestamp)
