@@ -55,11 +55,13 @@ app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 BlockNotice Backend running on http://localhost:${PORT}`);
-  console.log(`📡 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`🔗 CORS enabled for: ${process.env.FRONTEND_URL || "https://blocknotice.vercel.app"}`);
-});
+// Start server (only in development/Render, not in Vercel serverless)
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 BlockNotice Backend running on http://localhost:${PORT}`);
+    console.log(`📡 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`🔗 CORS enabled for: ${process.env.FRONTEND_URL || "https://blocknotice.vercel.app"}`);
+  });
+}
 
 module.exports = app;
