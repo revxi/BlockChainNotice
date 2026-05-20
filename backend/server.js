@@ -1,11 +1,17 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import noticesRoutes from './routes/notices.js';
 
 dotenv.config({ path: '../.env' });
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DIST = join(__dirname, '../frontend/dist');
 
 const app = express();
 app.use(cors());
@@ -13,8 +19,13 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/notices', noticesRoutes);
-
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
+
+// Serve built frontend in production
+if (existsSync(DIST)) {
+  app.use(express.static(DIST));
+  app.get('*', (_, res) => res.sendFile(join(DIST, 'index.html')));
+}
 
 async function initDb() {
   await pool.query(`
@@ -30,7 +41,7 @@ async function initDb() {
   console.log('✓ Database ready');
 }
 
-const PORT = process.env.BACKEND_PORT || 3001;
+const PORT = process.env.PORT || process.env.BACKEND_PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✓ Backend running on port ${PORT}`);
   initDb().catch(console.error);

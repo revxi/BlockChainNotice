@@ -59,9 +59,10 @@ localPort = 5001
 externalPort = 3000
 
 [deployment]
-deploymentTarget = "static"
-build = ["bash", "-c", "cd frontend && npm run build"]
+deploymentTarget = "autoscale"
+build = ["bash", "-c", "cd frontend && npm run build && cd ../backend && npm install"]
 publicDir = "frontend/dist"
+run = ["bash", "-c", "cd backend && node server.js"]
 
 [postMerge]
 path = "scripts/post-merge.sh"
