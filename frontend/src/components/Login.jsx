@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount, useConnect, useReadContract } from "wagmi";
 import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors";
 import { AlertCircle, Shield, ArrowRight, Wallet } from "lucide-react";
+import ABI from "../utils/abi.json";
 
-const ADMIN_ADDRESS = import.meta.env.VITE_ADMIN_ADDRESS || process.env.VITE_ADMIN_ADDRESS;
-const ADMIN_ADDRESS_MISSING = !ADMIN_ADDRESS;
-if (ADMIN_ADDRESS_MISSING) {
-  console.warn("VITE_ADMIN_ADDRESS environment variable is not defined");
-}
+const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
   const { connectors, connect, isPending, error: connectError } = useConnect();
   const [view, setView] = useState("home");
   const [error, setError] = useState("");
+
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: "admin",
+  });
 
   useEffect(() => {
     if (connectError) {
@@ -28,25 +31,19 @@ export default function Login({ onLogin }) {
   }, [connectError]);
 
   useEffect(() => {
-    if (account && view === "admin" && !isPending) {
-      if (ADMIN_ADDRESS_MISSING) {
-        setError("VITE_ADMIN_ADDRESS is not configured. Add it to the frontend env and restart the dev server.");
-      } else if (account.toLowerCase() === ADMIN_ADDRESS.toLowerCase()) {
+    if (account && view === "admin" && !isPending && adminAddress) {
+      if (account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else if (!error) {
         setError("Access denied. This wallet is not the authorized administrator.");
       }
     }
-  }, [account, view, onLogin, isPending, error]);
+  }, [account, view, onLogin, isPending, adminAddress, error]);
 
   const handleAdminConnect = async () => {
     setError("");
-    if (ADMIN_ADDRESS_MISSING) {
-      setError("VITE_ADMIN_ADDRESS is not configured. Add it to the frontend env and restart the dev server.");
-      return;
-    }
     if (account) {
-      if (account.toLowerCase() === ADMIN_ADDRESS.toLowerCase()) {
+      if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
         onLogin("admin");
       } else {
         setError("Access denied. This wallet is not the authorized administrator.");
@@ -156,14 +153,14 @@ export default function Login({ onLogin }) {
                 <ArrowRight size={16} className="text-white/30 group-hover:text-white/60 group-hover:translate-x-0.5 transition-all" />
               </button>
 
-              {/* Faculty button */}
+              {/* Admin button */}
               <button
                 onClick={() => { setView("admin"); setError(""); }}
                 className="group w-full flex items-center justify-between px-5 py-4 rounded-xl border transition-all duration-200"
                 style={{ backgroundColor: "#c9a84c", borderColor: "#c9a84c" }}
               >
                 <div className="text-left">
-                  <div className="text-black font-semibold text-sm">Faculty</div>
+                  <div className="text-black font-semibold text-sm">Administrator</div>
                   <div className="text-black/50 text-xs mt-0.5">Publish & manage notices</div>
                 </div>
                 <ArrowRight size={16} className="text-black/50 group-hover:translate-x-0.5 transition-transform" />
@@ -185,7 +182,7 @@ export default function Login({ onLogin }) {
               </button>
 
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-2">Faculty Access</h1>
+                <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
                 <p className="text-white/40 text-sm">
                   Connect your authorized wallet to continue.
                 </p>
@@ -222,7 +219,7 @@ export default function Login({ onLogin }) {
               )}
 
               <p className="text-center text-white/20 text-xs pt-2">
-                Only the registered faculty wallet can gain access.
+                Only the registered admin wallet can gain access.
               </p>
             </div>
           )}

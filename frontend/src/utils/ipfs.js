@@ -1,21 +1,21 @@
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
 function base58Encode(buffer) {
+  let result = '';
   let x = BigInt('0x' + Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
 
-  const resultArr = [];
   while (x > 0n) {
-    resultArr.push(BASE58_ALPHABET[Number(x % 58n)]);
+    result = BASE58_ALPHABET[Number(x % 58n)] + result;
     x = x / 58n;
   }
 
   // Handle leading zeros in buffer
   const uint8View = new Uint8Array(buffer);
   for (let i = 0; i < uint8View.length && uint8View[i] === 0; i++) {
-    resultArr.push('1');
+    result = '1' + result;
   }
 
-  return resultArr.reverse().join('');
+  return result;
 }
 
 /**
@@ -28,15 +28,11 @@ function base58Encode(buffer) {
 export async function generateIPFSHash(content) {
   if (!content) return "";
 
-  if (!globalThis.crypto || !globalThis.crypto.subtle || typeof globalThis.crypto.subtle.digest !== 'function') {
-    throw new Error('Web Crypto API (crypto.subtle.digest) is not available in this environment. Ensure you run in a secure browser context.');
-  }
-
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
 
   // Hash the content using SHA-256
-  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = new Uint8Array(hashBuffer);
 
   // IPFS CIDv0 (Qm...) is a multihash: 0x12 (SHA-256 prefix) + 0x20 (32 bytes length) + digest

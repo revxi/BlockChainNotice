@@ -5,47 +5,6 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>frontend</title>
-    <script>
-      // Initialize theme before React renders to prevent FOUC (Flash of Unstyled Content)
-      (function() {
-        const savedTheme = localStorage.getItem('theme') || 'system';
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        let isDark = false;
-
-        if (savedTheme === 'system') {
-          isDark = prefersDark;
-        } else if (savedTheme === 'dark') {
-          isDark = true;
-        }
-
-        // Apply theme
-        const root = document.documentElement;
-        if (isDark) {
-          root.classList.add('dark');
-          root.style.colorScheme = 'dark';
-          root.style.setProperty('--bg-primary', '#0f172a');
-          root.style.setProperty('--bg-secondary', '#1e293b');
-          root.style.setProperty('--bg-tertiary', '#334155');
-          root.style.setProperty('--text-primary', '#f1f5f9');
-          root.style.setProperty('--text-secondary', '#cbd5e1');
-          root.style.setProperty('--text-tertiary', '#94a3b8');
-          root.style.setProperty('--border-color', '#475569');
-          root.style.setProperty('--input-bg', '#1e293b');
-          root.style.setProperty('--input-border', '#475569');
-        } else {
-          root.style.colorScheme = 'light';
-          root.style.setProperty('--bg-primary', '#ffffff');
-          root.style.setProperty('--bg-secondary', '#f8fafc');
-          root.style.setProperty('--bg-tertiary', '#f1f5f9');
-          root.style.setProperty('--text-primary', '#0f172a');
-          root.style.setProperty('--text-secondary', '#334155');
-          root.style.setProperty('--text-tertiary', '#64748b');
-          root.style.setProperty('--border-color', '#e2e8f0');
-          root.style.setProperty('--input-bg', '#f8fafc');
-          root.style.setProperty('--input-border', '#e2e8f0');
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

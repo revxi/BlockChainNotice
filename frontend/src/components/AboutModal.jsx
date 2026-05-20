@@ -39,8 +39,8 @@ export default function AboutModal({ onClose }) {
             <p className="text-sm leading-relaxed text-slate-600 mt-2">
               Traditional notice boards rely on centralized servers vulnerable to data tampering,
               unauthorized modifications, and downtime. BlockNotice replaces this with a blockchain-backed
-              system where every notice is permanently recorded on-chain and only authorized faculty
-              members can publish.
+              system where every notice is permanently recorded on-chain and only authorized administrators
+              can publish.
             </p>
           </section>
 
@@ -50,7 +50,7 @@ export default function AboutModal({ onClose }) {
             <div className="grid sm:grid-cols-2 gap-3">
               {[
                 { icon: Shield, label: "Immutable Records", desc: "Notices stored on-chain cannot be edited or deleted after publishing" },
-                { icon: Zap, label: "Faculty-Only Publishing", desc: "Smart contract enforces only the authorized faculty wallet can post" },
+                { icon: Zap, label: "Admin-Only Publishing", desc: "Smart contract enforces only the authorized admin wallet can post" },
                 { icon: BookOpen, label: "IPFS Content Hashing", desc: "Notice content is hashed before submission, enabling integrity verification" },
                 { icon: Users, label: "Wallet Authentication", desc: "MetaMask and any EIP-1193 wallet are supported for admin login" },
               ].map(({ icon: Icon, label, desc }) => (
@@ -111,7 +111,7 @@ export default function AboutModal({ onClose }) {
                 </thead>
                 <tbody>
                   {[
-                    ["postNotice(title, content)", "Faculty only", "Publishes a new notice to the chain"],
+                    ["postNotice(title, content)", "Admin only", "Publishes a new notice to the chain"],
                     ["getAllNotices()", "Public", "Returns all published notices"],
                     ["admin()", "Public", "Returns the admin wallet address"],
                   ].map(([fn, access, desc], i) => (

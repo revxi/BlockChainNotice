@@ -5,20 +5,10 @@ import { findInjectedConnector, isMetaMaskInstalled } from "./utils/connectors";
 import { generateIPFSHash } from "./utils/ipfs";
 import { Search, Shield, Wallet, User, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
-import AdminDashboard from "./components/AdminDashboard";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
-import ThemeSelector from "./components/ThemeSelector";
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
-const ADMIN_ADDRESS = import.meta.env.VITE_ADMIN_ADDRESS || process.env.VITE_ADMIN_ADDRESS;
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.VITE_BACKEND_URL || null;
-if (!CONTRACT_ADDRESS) {
-  console.warn("VITE_CONTRACT_ADDRESS environment variable is not defined");
-}
-if (!ADMIN_ADDRESS) {
-  console.warn("VITE_ADMIN_ADDRESS environment variable is not defined");
-}
+const CONTRACT_ADDRESS = "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
 
 export default function App() {
   const { address: account } = useAccount();
@@ -28,40 +18,9 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [walletError, setWalletError] = useState("");
 
-  if (!CONTRACT_ADDRESS) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#07090f] text-white px-6">
-        <div className="max-w-xl rounded-2xl border border-red-700 bg-red-950/80 p-8 text-center">
-          <h1 className="text-2xl font-bold mb-3">Missing contract configuration</h1>
-          <p className="text-sm leading-6 text-white/80">
-            The frontend cannot load <code className="text-amber-200">VITE_CONTRACT_ADDRESS</code>.
-            Add it to <code className="text-amber-200">frontend/.env</code> and restart the dev server.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const isPublishing = isWritePending || isConfirming;
-
-  const [backendNotices, setBackendNotices] = React.useState(null);
-
-  const fetchNoticesFromBackend = async () => {
-    if (!BACKEND_URL) return;
-    try {
-      const base = BACKEND_URL.replace(/\/$/, '');
-      const apiBase = base.endsWith('/api') ? base : `${base}/api`;
-      const res = await fetch(`${apiBase}/notices`);
-      if (!res.ok) throw new Error('Failed to fetch from backend');
-      const json = await res.json();
-      setBackendNotices(json.notices || []);
-    } catch (err) {
-      console.warn('Backend notices fetch failed:', err.message || err);
-      setBackendNotices(null);
-    }
-  };
 
   useEffect(() => {
     if (connectError) {
@@ -81,23 +40,30 @@ export default function App() {
     functionName: "getAllNotices",
   });
 
+  const { data: adminAddress } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: ABI,
+    functionName: "admin",
+  });
+
   useEffect(() => {
     if (isConfirmed) fetchNotices();
-    // also refresh backend notices if available
-    fetchNoticesFromBackend();
   }, [isConfirmed, fetchNotices]);
 
   const notices = useMemo(() => {
-    const source = backendNotices !== null ? backendNotices : noticesData;
-    if (!source) return [];
-    const dateFormatter = new Intl.DateTimeFormat();
-    return (Array.isArray(source) ? source : []).slice().reverse().map((n) => ({
-      id: n.id.toString(),
-      title: n.title,
-      hash: n.content,
-      date: dateFormatter.format(Number(n.timestamp) * 1000),
-    }));
-  }, [noticesData, backendNotices]);
+    if (!noticesData) return [];
+    return noticesData.reduceRight((acc, n) => {
+      if (n) {
+        acc.push({
+          id: n.id.toString(),
+          title: n.title,
+          hash: n.content,
+          date: new Date(Number(n.timestamp) * 1000).toLocaleDateString(),
+        });
+      }
+      return acc;
+    }, []);
+  }, [noticesData]);
 
   const filteredNotices = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
@@ -111,11 +77,9 @@ export default function App() {
 
   const handlePublish = useCallback(
     async (formData) => {
-      if (!account) throw new Error("Connect Wallet!");
-      const isAdmin = ADMIN_ADDRESS && account && account.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
-      if (userRole !== "admin" || !isAdmin) {
-        throw new Error(ADMIN_ADDRESS ? "Unauthorized: Admins only." : "Unable to verify admin role. Configure VITE_ADMIN_ADDRESS in frontend env.");
-      }
+      if (!account) return alert("Connect Wallet!");
+      const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
+      if (userRole !== "admin" || !isAdmin) return alert("Unauthorized: Admins only.");
       try {
         const secureHash = await generateIPFSHash(formData.content);
         await writeContractAsync({
@@ -126,46 +90,29 @@ export default function App() {
         });
         fetchNotices();
       } catch (err) {
-        if (import.meta.env?.DEV) {
-          console.error("Publish error:", err);
-          alert("Error publishing notice (Check console for details)");
-        } else {
-          alert("Error publishing notice. Please try again.");
-        }
         console.error("Publish error:", err);
-        throw new Error("Error publishing notice (Check console for details)");
+        alert("Error publishing notice (Check console for details)");
       }
     },
-    [account, userRole, writeContractAsync, fetchNotices]
+    [account, userRole, writeContractAsync, fetchNotices, adminAddress]
   );
-
 
   if (!userRole) return <Login onLogin={setUserRole} />;
 
-  if (userRole === "admin") {
-    return (
-      <AdminDashboard
-        notices={filteredNotices}
-        onPublish={handlePublish}
-        isPublishing={isPublishing}
-        onSignOut={() => setUserRole(null)}
-      />
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-primary">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b bg-primary border-theme">
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
           {/* Brand */}
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#c9a84c]">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: "#c9a84c" }}>
               <Shield size={14} className="text-white" />
             </div>
-            <span className="font-bold text-sm tracking-tight text-primary">BlockNotice</span>
+            <span className="font-bold text-slate-800 text-sm tracking-tight">BlockNotice</span>
             {userRole === "admin" && (
               <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                 Admin
@@ -175,9 +122,9 @@ export default function App() {
 
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
-              className="w-full border rounded-lg pl-9 pr-4 py-1.5 text-sm outline-none focus:ring-1 transition-all bg-input border-input text-primary"
+              className="w-full border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-200 transition-all bg-slate-50"
               placeholder="Search notices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -193,8 +140,6 @@ export default function App() {
               </div>
             )}
 
-            <ThemeSelector />
-
             <button
               onClick={() => {
                 setWalletError("");
@@ -209,11 +154,12 @@ export default function App() {
                   setWalletError(err.code === 4001 ? "Connection rejected." : "Failed to connect.");
                 });
               }}
-              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all ${
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all"
+              style={
                 account
-                  ? "border-theme text-secondary bg-secondary"
-                  : "bg-slate-900 text-white border-slate-900"
-              }`}
+                  ? { borderColor: "#e2e8f0", color: "#475569", backgroundColor: "#f8fafc" }
+                  : { backgroundColor: "#0f172a", color: "white", borderColor: "#0f172a" }
+              }
             >
               {account ? (
                 <>
@@ -230,7 +176,7 @@ export default function App() {
 
             <button
               onClick={() => setUserRole(null)}
-              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors text-tertiary border-theme"
+              className="text-xs text-slate-400 hover:text-slate-600 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200"
             >
               Sign out
             </button>
@@ -239,14 +185,14 @@ export default function App() {
       </nav>
 
       {/* Sub-header */}
-      <div className="border-b bg-primary border-theme">
+      <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-base font-bold text-primary">Official Notice Board</h1>
-            <p className="text-xs mt-0.5 text-tertiary">
+            <h1 className="text-base font-bold text-slate-800">Official Notice Board</h1>
+            <p className="text-xs text-slate-400 mt-0.5">
               {notices.length} notice{notices.length !== 1 ? "s" : ""} published on-chain
               {searchQuery && filteredNotices.length !== notices.length && (
-                <> · <span className="font-medium text-secondary">{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
+                <> · <span className="text-slate-600 font-medium">{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
               )}
             </p>
           </div>
@@ -257,7 +203,10 @@ export default function App() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
         <div className="grid lg:grid-cols-12 gap-6 items-start">
-          <div className="lg:col-span-12">
+          {userRole === "admin" && (
+            <AdminPanel onPublish={handlePublish} loading={isPublishing} />
+          )}
+          <div className={userRole === "admin" ? "lg:col-span-8" : "lg:col-span-12"}>
             <NoticeFeed filteredNotices={filteredNotices} searchQuery={searchQuery} />
           </div>
         </div>

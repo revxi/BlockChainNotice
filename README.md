@@ -31,7 +31,7 @@ BlockNotice is a dApp (decentralized application) that enables colleges and inst
 Traditional notice boards rely on centralized servers that are vulnerable to data tampering, unauthorized modifications, and downtime. BlockNotice replaces this with a blockchain-backed system where:
 
 - Every notice is recorded permanently on-chain
-- Only authorized faculty members can publish
+- Only authorized administrators can publish
 - Anyone can read and verify notices without trusting a central server
 - Content integrity is guaranteed through IPFS-style content hashing
 
@@ -42,7 +42,7 @@ Traditional notice boards rely on centralized servers that are vulnerable to dat
 | Feature | Description |
 |---|---|
 | **Immutable Records** | Notices are stored on-chain and cannot be edited or deleted after publishing |
-| **Faculty-Only Publishing** | Smart contract enforces that only the authorized faculty wallet can post |
+| **Admin-Only Publishing** | Smart contract enforces that only the authorized admin wallet can post |
 | **IPFS Content Hashing** | Notice content is hashed before submission, simulating decentralized file storage |
 | **Wallet Authentication** | MetaMask and any EIP-1193 wallet are supported for admin login |
 | **Real-Time Blockchain Reads** | Notices are fetched directly from the contract — no backend database |
@@ -173,9 +173,9 @@ VITE_BACKEND_URL=http://localhost:3001/api
 3. Use the search bar to filter by notice title, ID, or date
 4. No wallet required for read-only access
 
-### As Faculty
+### As an Administrator
 
-1. Click the **Faculty** tab on the login screen
+1. Click the **Administrator** tab on the login screen
 2. Click **Connect Admin Wallet** — MetaMask will prompt for connection
 3. The smart contract verifies your wallet matches the registered admin address
 4. Use the **Issue Official Notice** panel to publish new notices
