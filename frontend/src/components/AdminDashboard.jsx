@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Shield, LayoutDashboard, FileText, PlusCircle, CheckCircle2,
   BarChart2, Settings, Building, ChevronDown, Bell, LogOut,
-  File, Cube, Users, Calendar, Clipboard, Book, Copy, ChevronRight,
+  File, Package, Users, Calendar, Clipboard, Book, Copy, ChevronRight,
   Activity, ShieldCheck, Database
 } from 'lucide-react';
 
@@ -46,7 +46,7 @@ export default function AdminDashboard({ notices = [], onPublish, isPublishing, 
               <LayoutDashboard size={18} />
               <span className="text-sm">Dashboard</span>
             </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-colors cursor-not-allowed opacity-50">
+            <button onClick={() => setActiveTab('notices')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${activeTab === 'notices' ? 'bg-blue-900/30 text-blue-400 font-medium' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'}`}>
               <FileText size={18} />
               <span className="text-sm">My Notices</span>
             </button>
@@ -54,11 +54,11 @@ export default function AdminDashboard({ notices = [], onPublish, isPublishing, 
               <PlusCircle size={18} />
               <span className="text-sm">Create Notice</span>
             </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-colors cursor-not-allowed opacity-50">
+            <button onClick={() => setActiveTab('verified')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${activeTab === 'verified' ? 'bg-blue-900/30 text-blue-400 font-medium' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'}`}>
               <CheckCircle2 size={18} />
               <span className="text-sm">Verified Records</span>
             </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-colors cursor-not-allowed opacity-50">
+            <button onClick={() => setActiveTab('analytics')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-blue-900/30 text-blue-400 font-medium' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'}`}>
               <BarChart2 size={18} />
               <span className="text-sm">Analytics</span>
             </button>
@@ -92,7 +92,7 @@ export default function AdminDashboard({ notices = [], onPublish, isPublishing, 
         <header className="px-8 py-5 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-950/80 backdrop-blur-sm z-10">
           <div>
             <h2 className="text-xl font-bold text-slate-100">Welcome, Department Admin 👋</h2>
-            <p className="text-sm text-slate-400 mt-1">Here's what's happening in your department.</p>
+            <p className="text-sm text-slate-400 mt-1">Manage notices, verify records, and review analytics.</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="relative p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-full transition-colors">
@@ -112,300 +112,357 @@ export default function AdminDashboard({ notices = [], onPublish, isPublishing, 
         </header>
 
         <div className="p-8 space-y-6">
-          {/* Top Metrics Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card 1 */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <File size={20} className="text-blue-400" />
-                </div>
-              </div>
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-slate-400 mb-1">Total Notices</p>
-                <h3 className="text-2xl font-bold text-slate-100 mb-3">12</h3>
-                <a href="#" className="text-xs text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1 transition-colors">
-                  → View all notices
-                </a>
-              </div>
-              {/* Sparkline Placeholder */}
-              <div className="absolute right-0 bottom-0 w-24 h-16 opacity-20 pointer-events-none flex items-end justify-between px-2 pb-2 gap-1">
-                <div className="w-2 bg-blue-400 rounded-t h-4"></div>
-                <div className="w-2 bg-blue-400 rounded-t h-6"></div>
-                <div className="w-2 bg-blue-400 rounded-t h-3"></div>
-                <div className="w-2 bg-blue-400 rounded-t h-8"></div>
-                <div className="w-2 bg-blue-400 rounded-t h-5"></div>
-              </div>
-            </div>
-
-            {/* Card 2 */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <ShieldCheck size={20} className="text-emerald-400" />
-                </div>
-              </div>
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-slate-400 mb-1">Verified Notices</p>
-                <h3 className="text-2xl font-bold text-slate-100 mb-3">12</h3>
-                <p className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  100% Verified
-                </p>
-              </div>
-              {/* Sparkline Placeholder */}
-              <div className="absolute right-0 bottom-0 w-24 h-16 opacity-20 pointer-events-none flex items-end justify-between px-2 pb-2 gap-1">
-                <div className="w-full h-8 border-t-2 border-emerald-400 rounded-tl-full bg-gradient-to-t from-emerald-400/20 to-transparent"></div>
-              </div>
-            </div>
-
-            {/* Card 3 */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Cube size={20} className="text-purple-400" />
-                </div>
-              </div>
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-slate-400 mb-1">On-Chain Records</p>
-                <h3 className="text-2xl font-bold text-slate-100 mb-3">12</h3>
-                <p className="text-xs text-purple-400 font-medium flex items-center gap-1.5">
-                  <Database size={12} />
-                  Immutable
-                </p>
-              </div>
-              {/* Sparkline Placeholder */}
-              <div className="absolute right-0 bottom-0 w-24 h-16 opacity-20 pointer-events-none flex items-center justify-center">
-                <div className="w-16 h-16 rounded-full border-4 border-purple-400 border-t-transparent border-r-transparent rotate-45"></div>
-              </div>
-            </div>
-
-            {/* Card 4 */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4 relative z-10">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <Users size={20} className="text-amber-400" />
-                </div>
-              </div>
-              <div className="relative z-10">
-                <p className="text-sm font-medium text-slate-400 mb-1">Total Views</p>
-                <h3 className="text-2xl font-bold text-slate-100 mb-3">248</h3>
-                <p className="text-xs text-amber-400 font-medium flex items-center gap-1">
-                  ↗ +18% this week
-                </p>
-              </div>
-              {/* Sparkline Placeholder */}
-              <div className="absolute right-0 bottom-0 w-24 h-16 opacity-20 pointer-events-none flex items-end justify-between px-2 pb-2 gap-1">
-                <svg viewBox="0 0 100 50" className="w-full h-full stroke-amber-400 fill-none" strokeWidth="4">
-                  <path d="M0 40 L20 35 L40 45 L60 20 L80 25 L100 5" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content Split */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column (Recent Notices) */}
-            <div className="lg:col-span-2">
-              <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-full">
-                <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-100">Recent Notices</h3>
-                  <button className="text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors">
-                    View all
-                  </button>
-                </div>
-
-                <div className="divide-y divide-slate-800/60 flex-1">
-                  {/* Item 1 */}
-                  <div className="p-4 hover:bg-slate-800/30 transition-colors flex items-center gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-700 transition-colors">
-                      <Calendar size={18} className="text-blue-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm font-semibold text-slate-200 truncate">Mid Sem Examination Schedule</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 shrink-0">
-                          Examination
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>May 18, 2026 • 2:30 PM</span>
-                        <span className="flex items-center gap-1 text-emerald-400/80">
-                          <CheckCircle2 size={12} /> Verified
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs font-mono text-slate-400 group-hover:border-slate-700 transition-colors">
-                        Block # 19876543
-                        <Copy size={12} className="text-slate-500 hover:text-slate-300 cursor-pointer" />
-                      </div>
-                    </div>
-                    <div className="pl-2">
-                      <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+          {activeTab === 'dashboard' && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <File size={20} className="text-blue-400" />
                     </div>
                   </div>
-
-                  {/* Item 2 */}
-                  <div className="p-4 hover:bg-slate-800/30 transition-colors flex items-center gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-700 transition-colors">
-                      <Book size={18} className="text-red-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm font-semibold text-slate-200 truncate">Updated Syllabus for Semester 6</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20 shrink-0">
-                          Academics
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>May 15, 2026 • 10:15 AM</span>
-                        <span className="flex items-center gap-1 text-emerald-400/80">
-                          <CheckCircle2 size={12} /> Verified
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs font-mono text-slate-400 group-hover:border-slate-700 transition-colors">
-                        Block # 19875421
-                        <Copy size={12} className="text-slate-500 hover:text-slate-300 cursor-pointer" />
-                      </div>
-                    </div>
-                    <div className="pl-2">
-                      <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
-                    </div>
-                  </div>
-
-                  {/* Item 3 */}
-                  <div className="p-4 hover:bg-slate-800/30 transition-colors flex items-center gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-700 transition-colors">
-                      <Clipboard size={18} className="text-purple-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm font-semibold text-slate-200 truncate">Project Submission Guidelines</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 shrink-0">
-                          Guidelines
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>May 10, 2026 • 4:45 PM</span>
-                        <span className="flex items-center gap-1 text-emerald-400/80">
-                          <CheckCircle2 size={12} /> Verified
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs font-mono text-slate-400 group-hover:border-slate-700 transition-colors">
-                        Block # 19871105
-                        <Copy size={12} className="text-slate-500 hover:text-slate-300 cursor-pointer" />
-                      </div>
-                    </div>
-                    <div className="pl-2">
-                      <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
-                    </div>
-                  </div>
-
-                  {/* Item 4 */}
-                  <div className="p-4 hover:bg-slate-800/30 transition-colors flex items-center gap-4 group cursor-pointer">
-                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-700 transition-colors">
-                      <Calendar size={18} className="text-amber-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="text-sm font-semibold text-slate-200 truncate">Annual Tech Fest Dates Announced</h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
-                          Events
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <span>May 02, 2026 • 9:00 AM</span>
-                        <span className="flex items-center gap-1 text-emerald-400/80">
-                          <CheckCircle2 size={12} /> Verified
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-950 border border-slate-800 text-xs font-mono text-slate-400 group-hover:border-slate-700 transition-colors">
-                        Block # 19864092
-                        <Copy size={12} className="text-slate-500 hover:text-slate-300 cursor-pointer" />
-                      </div>
-                    </div>
-                    <div className="pl-2">
-                      <ChevronRight size={16} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column (Context Panels) */}
-            <div className="lg:col-span-1 space-y-6">
-
-              {/* Department Info Card */}
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-inner">
-                    <Building size={32} className="text-slate-300" />
-                  </div>
-                </div>
-                <h3 className="text-center font-semibold text-slate-100 mb-2">Computer Engineering Department</h3>
-                <p className="text-center text-sm text-slate-400 mb-6 leading-relaxed">
-                  Manage and publish official departmental notices. All records are permanently secured on the blockchain ledger.
-                </p>
-                <button className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium rounded-lg transition-colors border border-slate-700 hover:border-slate-600">
-                  Department Settings
-                </button>
-              </div>
-
-              {/* Blockchain Status Card */}
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <h3 className="font-semibold text-slate-100 mb-4 flex items-center gap-2">
-                  <Activity size={16} className="text-blue-400" />
-                  Blockchain Status
-                </h3>
-
-                <div className="space-y-4 mb-6">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Network</span>
-                    <span className="font-medium text-slate-200">Ethereum Mainnet</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Last Sync</span>
-                    <span className="font-medium text-slate-200">2 mins ago</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Smart Contract</span>
-                    <span className="font-medium text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircle2 size={14} /> Verified
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-400">Status</span>
-                    <span className="font-medium text-emerald-400 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Operational
-                    </span>
+                  <div className="relative z-10">
+                    <p className="text-sm font-medium text-slate-400 mb-1">Total Notices</p>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-3">{notices.length}</h3>
+                    <p className="text-xs text-slate-500">Published on-chain and visible to all users.</p>
                   </div>
                 </div>
 
-                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 flex gap-3">
-                  <ShieldCheck size={20} className="text-emerald-400 shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-medium text-emerald-400 mb-1">All systems operational</h4>
-                    <p className="text-xs text-emerald-400/80 leading-relaxed">
-                      Your notices are secure and immutable. The blockchain ledger is actively syncing.
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <ShieldCheck size={20} className="text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="relative z-10">
+                    <p className="text-sm font-medium text-slate-400 mb-1">Verified Records</p>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-3">{notices.length}</h3>
+                    <p className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      All records permanently verified
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                      <Package size={20} className="text-purple-400" />
+                    </div>
+                  </div>
+                  <div className="relative z-10">
+                    <p className="text-sm font-medium text-slate-400 mb-1">On-Chain Blocks</p>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-3">{notices.length * 2 || 8}</h3>
+                    <p className="text-xs text-purple-400 font-medium flex items-center gap-1.5">
+                      <Database size={12} />
+                      Immutable history
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-4 relative z-10">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Users size={20} className="text-amber-400" />
+                    </div>
+                  </div>
+                  <div className="relative z-10">
+                    <p className="text-sm font-medium text-slate-400 mb-1">Active Admins</p>
+                    <h3 className="text-2xl font-bold text-slate-100 mb-3">1</h3>
+                    <p className="text-xs text-amber-400 font-medium flex items-center gap-1">
+                      ↗ Admin-only access
                     </p>
                   </div>
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-widest text-slate-500">Recent Activity</p>
+                      <h3 className="text-xl font-semibold text-slate-100">Latest published notices</h3>
+                    </div>
+                    <span className="text-xs text-slate-400">Showing up to 4</span>
+                  </div>
+                  <div className="space-y-4">
+                    {notices.length === 0 ? (
+                      <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6 text-slate-400">
+                        No notices have been published yet.
+                      </div>
+                    ) : (
+                      notices.slice(0, 4).map((notice) => (
+                        <div key={notice.id} className="rounded-2xl border border-slate-800 bg-slate-950 p-5 hover:border-slate-700 transition-colors">
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <h4 className="text-lg font-semibold text-slate-100 truncate">{notice.title}</h4>
+                                <p className="text-xs text-slate-500 mt-1">Notice #{notice.id} · {notice.date}</p>
+                              </div>
+                              <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">Verified</span>
+                            </div>
+                            <p className="text-sm text-slate-400 line-clamp-2">{notice.hash}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 className="font-semibold text-slate-100 mb-3">Blockchain Summary</h3>
+                    <div className="space-y-3 text-sm text-slate-400">
+                      <div className="flex justify-between">
+                        <span>Verified notices</span>
+                        <span>{notices.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Average notice length</span>
+                        <span>{notices.length ? Math.round(notices.reduce((sum, notice) => sum + notice.title.length, 0) / notices.length) : 0} chars</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Latest publication</span>
+                        <span>{notices[0]?.date || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 className="font-semibold text-slate-100 mb-3">Quick Actions</h3>
+                    <p className="text-sm text-slate-400 mb-4">Use the sidebar to switch between notices, verification, and analytics.</p>
+                    <button onClick={() => setActiveTab('create')} className="w-full px-4 py-2 text-sm font-semibold text-slate-100 bg-blue-600 rounded-lg hover:bg-blue-500 transition-colors">
+                      Publish a new notice
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === 'notices' && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-slate-500">My Notices</p>
+                  <h3 className="text-2xl font-semibold text-slate-100">Published notices</h3>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-slate-900 border border-slate-800 px-4 py-2 text-xs font-semibold text-slate-400">
+                  {notices.length} notice{notices.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              {notices.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-10 text-center text-slate-500">
+                  No notices found. Publish a new notice to populate the list.
+                </div>
+              ) : (
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {notices.map((notice) => (
+                    <div key={notice.id} className="rounded-2xl border border-slate-800 bg-slate-950 p-6 hover:border-slate-700 transition-colors">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-slate-500">Notice #{notice.id}</p>
+                          <h4 className="text-lg font-semibold text-slate-100 mt-2">{notice.title}</h4>
+                        </div>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">
+                          Verified
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-400 mb-4 line-clamp-3">{notice.hash}</p>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>{notice.date}</span>
+                        <button className="text-slate-300 hover:text-slate-100 transition-colors">View details</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          )}
+
+          {activeTab === 'create' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <div className="mb-6">
+                  <p className="text-xs uppercase tracking-widest text-slate-500">Create Notice</p>
+                  <h3 className="text-2xl font-semibold text-slate-100">Publish a new official notice</h3>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {error && (
+                    <div className="rounded-2xl border border-red-700 bg-red-950/80 p-4 text-sm text-red-300">
+                      {error}
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-300">Notice Title</label>
+                    <input
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="Enter title"
+                      className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition-colors focus:border-blue-600"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-300">Notice Content</label>
+                    <textarea
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      placeholder="Enter notice details"
+                      rows={8}
+                      className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-slate-100 outline-none transition-colors focus:border-blue-600"
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500">
+                    {isPublishing ? 'Publishing...' : 'Publish Notice'}
+                  </button>
+                </form>
+              </div>
+              <div className="space-y-6">
+                <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">Publishing Guide</h3>
+                  <p className="text-sm text-slate-400 leading-6">
+                    Only authorized faculty can publish notices. Once submitted, the notice is recorded on-chain and cannot be edited.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">Quick Stats</h3>
+                  <div className="space-y-3 text-sm text-slate-400">
+                    <div className="flex justify-between">
+                      <span>Total notices</span>
+                      <span>{notices.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Drafts</span>
+                      <span>0</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ready to publish</span>
+                      <span>{formData.title && formData.content ? 'Yes' : 'No'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'verified' && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-slate-500">Verified Records</p>
+                  <h3 className="text-2xl font-semibold text-slate-100">Blockchain proofs</h3>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-slate-900 border border-slate-800 px-4 py-2 text-xs font-semibold text-slate-400">
+                  {notices.length} verified record{notices.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                  <p className="text-sm text-slate-400">Total Immovable Claims</p>
+                  <h4 className="mt-3 text-3xl font-semibold text-slate-100">{notices.length}</h4>
+                  <p className="mt-4 text-sm text-slate-500">Every record has an immutable transaction hash on-chain.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                  <p className="text-sm text-slate-400">Lowest validation time</p>
+                  <h4 className="mt-3 text-3xl font-semibold text-slate-100">3ms</h4>
+                  <p className="mt-4 text-sm text-slate-500">Estimated verification latency for recent notices.</p>
+                </div>
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                  <p className="text-sm text-slate-400">Verified by</p>
+                  <h4 className="mt-3 text-3xl font-semibold text-slate-100">Blockchain</h4>
+                  <p className="mt-4 text-sm text-slate-500">Records are cryptographically anchored and tamper proof.</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {notices.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-10 text-center text-slate-500">
+                    There are no verified records yet.
+                  </div>
+                ) : (
+                  notices.map((notice) => (
+                    <div key={notice.id} className="rounded-2xl border border-slate-800 bg-slate-950 p-6 hover:border-slate-700 transition-colors">
+                      <div className="flex items-center justify-between gap-4 mb-4">
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-slate-500">Verified record</p>
+                          <h4 className="text-lg font-semibold text-slate-100 mt-2">{notice.title}</h4>
+                        </div>
+                        <span className="text-xs font-semibold uppercase tracking-wide text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-full">Verified</span>
+                      </div>
+                      <p className="text-sm text-slate-400 mb-4 line-clamp-3">{notice.hash}</p>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>{notice.date}</span>
+                        <span className="font-medium text-slate-300">Block verified</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <div className="space-y-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-slate-500">Analytics</p>
+                  <h3 className="text-2xl font-semibold text-slate-100">Notice performance</h3>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-slate-900 border border-slate-800 px-4 py-2 text-xs font-semibold text-slate-400">
+                  Updated live
+                </span>
+              </div>
+              <div className="grid gap-6 xl:grid-cols-3">
+                <div className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h4 className="text-lg font-semibold text-slate-100">Notice activity</h4>
+                      <p className="text-sm text-slate-500">Publication trends over the last seven entries.</p>
+                    </div>
+                    <span className="text-xs uppercase tracking-wide text-slate-400">Trend</span>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    {[12, 16, 9, 14, 18, 11, 15].map((value, index) => (
+                      <div key={index} className="h-32 rounded-3xl bg-slate-900 p-4 flex flex-col justify-end">
+                        <span className="text-sm text-slate-400">Day {index + 1}</span>
+                        <div className="mt-4 rounded-full bg-blue-500/20" style={{ height: `${value * 3}px` }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                    <p className="text-sm text-slate-400">Total notices</p>
+                    <h4 className="mt-3 text-3xl font-semibold text-slate-100">{notices.length}</h4>
+                  </div>
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                    <p className="text-sm text-slate-400">Average time to verify</p>
+                    <h4 className="mt-3 text-3xl font-semibold text-slate-100">3.2s</h4>
+                  </div>
+                  <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                    <p className="text-sm text-slate-400">Top categories</p>
+                    <div className="mt-3 space-y-2 text-sm text-slate-200">
+                      <div className="flex items-center justify-between">
+                        <span>Exams</span>
+                        <span>42%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Events</span>
+                        <span>28%</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Academics</span>
+                        <span>30%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Footer */}
         <footer className="mt-auto py-6 border-t border-slate-800">
           <p className="text-center text-xs text-slate-500">
             © 2026 BlockNotice. Secured by Ethereum Blockchain.

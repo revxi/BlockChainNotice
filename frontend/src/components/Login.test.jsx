@@ -2,13 +2,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Login from './Login';
-import { useAccount, useConnect, useReadContract } from 'wagmi';
+import { useAccount, useConnect } from 'wagmi';
 
 // Mock wagmi hooks
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
   useConnect: vi.fn(),
-  useReadContract: vi.fn(),
 }));
 
 vi.mock('wagmi/connectors', () => ({
@@ -21,7 +20,7 @@ const mockUserAddress = '0x9876543210987654321098765432109876543210';
 describe('Login Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useReadContract.mockReturnValue({ data: mockAdminAddress });
+    process.env.VITE_ADMIN_ADDRESS = mockAdminAddress;
   });
 
   it('calls onLogin with "user" when user login button is clicked', () => {
@@ -44,8 +43,8 @@ describe('Login Component', () => {
     const mockOnLogin = vi.fn();
     render(<Login onLogin={mockOnLogin} />);
 
-    // Switch to Admin Portal tab
-    const adminTab = screen.getByRole('button', { name: /Administrator/i });
+    // Switch to admin access tab
+    const adminTab = screen.getByRole('button', { name: /Faculty/i });
     fireEvent.click(adminTab);
 
     const verifyButton = screen.getByRole('button', { name: /Verify & Enter/i });
@@ -61,8 +60,8 @@ describe('Login Component', () => {
     const mockOnLogin = vi.fn();
     render(<Login onLogin={mockOnLogin} />);
 
-    // Switch to Admin Portal tab
-    const adminTab = screen.getByRole('button', { name: /Administrator/i });
+    // Switch to admin access tab
+    const adminTab = screen.getByRole('button', { name: /Faculty/i });
     fireEvent.click(adminTab);
 
     const verifyButton = screen.getByRole('button', { name: /Verify & Enter/i });
@@ -82,8 +81,8 @@ describe('Login Component', () => {
     const mockOnLogin = vi.fn();
     render(<Login onLogin={mockOnLogin} />);
 
-    // Switch to Admin Portal tab
-    const adminTab = screen.getByRole('button', { name: /Administrator/i });
+    // Switch to admin access tab
+    const adminTab = screen.getByRole('button', { name: /Faculty/i });
     fireEvent.click(adminTab);
 
     await waitFor(() => {

@@ -10,9 +10,14 @@ import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
 import ThemeSelector from "./components/ThemeSelector";
 
-const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || process.env.VITE_CONTRACT_ADDRESS;
+const ADMIN_ADDRESS = import.meta.env.VITE_ADMIN_ADDRESS || process.env.VITE_ADMIN_ADDRESS;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || process.env.VITE_BACKEND_URL || null;
 if (!CONTRACT_ADDRESS) {
   console.warn("VITE_CONTRACT_ADDRESS environment variable is not defined");
+}
+if (!ADMIN_ADDRESS) {
+  console.warn("VITE_ADMIN_ADDRESS environment variable is not defined");
 }
 
 export default function App() {
@@ -23,9 +28,40 @@ export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [walletError, setWalletError] = useState("");
 
+  if (!CONTRACT_ADDRESS) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#07090f] text-white px-6">
+        <div className="max-w-xl rounded-2xl border border-red-700 bg-red-950/80 p-8 text-center">
+          <h1 className="text-2xl font-bold mb-3">Missing contract configuration</h1>
+          <p className="text-sm leading-6 text-white/80">
+            The frontend cannot load <code className="text-amber-200">VITE_CONTRACT_ADDRESS</code>.
+            Add it to <code className="text-amber-200">frontend/.env</code> and restart the dev server.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
   const isPublishing = isWritePending || isConfirming;
+
+  const [backendNotices, setBackendNotices] = React.useState(null);
+
+  const fetchNoticesFromBackend = async () => {
+    if (!BACKEND_URL) return;
+    try {
+      const base = BACKEND_URL.replace(/\/$/, '');
+      const apiBase = base.endsWith('/api') ? base : `${base}/api`;
+      const res = await fetch(`${apiBase}/notices`);
+      if (!res.ok) throw new Error('Failed to fetch from backend');
+      const json = await res.json();
+      setBackendNotices(json.notices || []);
+    } catch (err) {
+      console.warn('Backend notices fetch failed:', err.message || err);
+      setBackendNotices(null);
+    }
+  };
 
   useEffect(() => {
     if (connectError) {
@@ -45,31 +81,23 @@ export default function App() {
     functionName: "getAllNotices",
   });
 
-  const { data: adminAddress } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: "admin",
-  });
-
   useEffect(() => {
     if (isConfirmed) fetchNotices();
+    // also refresh backend notices if available
+    fetchNoticesFromBackend();
   }, [isConfirmed, fetchNotices]);
 
   const notices = useMemo(() => {
-    if (!noticesData) return [];
+    const source = backendNotices !== null ? backendNotices : noticesData;
+    if (!source) return [];
     const dateFormatter = new Intl.DateTimeFormat();
-    return noticesData.reduceRight((acc, n) => {
-      if (n) {
-        acc.push({
-          id: n.id.toString(),
-          title: n.title,
-          hash: n.content,
-          date: dateFormatter.format(Number(n.timestamp) * 1000),
-        });
-      }
-      return acc;
-    }, []);
-  }, [noticesData]);
+    return (Array.isArray(source) ? source : []).slice().reverse().map((n) => ({
+      id: n.id.toString(),
+      title: n.title,
+      hash: n.content,
+      date: dateFormatter.format(Number(n.timestamp) * 1000),
+    }));
+  }, [noticesData, backendNotices]);
 
   const filteredNotices = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
@@ -84,8 +112,10 @@ export default function App() {
   const handlePublish = useCallback(
     async (formData) => {
       if (!account) throw new Error("Connect Wallet!");
-      const isAdmin = adminAddress && account.toLowerCase() === adminAddress.toLowerCase();
-      if (userRole !== "admin" || !isAdmin) throw new Error("Unauthorized: Admins only.");
+      const isAdmin = ADMIN_ADDRESS && account && account.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
+      if (userRole !== "admin" || !isAdmin) {
+        throw new Error(ADMIN_ADDRESS ? "Unauthorized: Admins only." : "Unable to verify admin role. Configure VITE_ADMIN_ADDRESS in frontend env.");
+      }
       try {
         const secureHash = await generateIPFSHash(formData.content);
         await writeContractAsync({
@@ -106,7 +136,7 @@ export default function App() {
         throw new Error("Error publishing notice (Check console for details)");
       }
     },
-    [account, userRole, writeContractAsync, fetchNotices, adminAddress]
+    [account, userRole, writeContractAsync, fetchNotices]
   );
 
 

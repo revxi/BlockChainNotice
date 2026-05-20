@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useAccount, useConnect, useReadContract } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
 import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors";
 import { AlertCircle, Shield, ArrowRight, Wallet } from "lucide-react";
-import ABI from "../utils/abi.json";
 
-const CONTRACT_ADDRESS = import.meta.env?.VITE_CONTRACT_ADDRESS || "0x5FbDB2315678afccb333f8a9c6122f65385ba4c8a";
+const ADMIN_ADDRESS = import.meta.env.VITE_ADMIN_ADDRESS || process.env.VITE_ADMIN_ADDRESS;
+const ADMIN_ADDRESS_MISSING = !ADMIN_ADDRESS;
+if (ADMIN_ADDRESS_MISSING) {
+  console.warn("VITE_ADMIN_ADDRESS environment variable is not defined");
+}
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
   const { connectors, connect, isPending, error: connectError } = useConnect();
   const [view, setView] = useState("home");
   const [error, setError] = useState("");
-
-  const { data: adminAddress } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: "admin",
-  });
 
   useEffect(() => {
     if (connectError) {
@@ -31,22 +28,28 @@ export default function Login({ onLogin }) {
   }, [connectError]);
 
   useEffect(() => {
-    if (account && view === "admin" && !isPending && adminAddress) {
-      if (account.toLowerCase() === adminAddress.toLowerCase()) {
+    if (account && view === "admin" && !isPending) {
+      if (ADMIN_ADDRESS_MISSING) {
+        setError("VITE_ADMIN_ADDRESS is not configured. Add it to the frontend env and restart the dev server.");
+      } else if (account.toLowerCase() === ADMIN_ADDRESS.toLowerCase()) {
         onLogin("admin");
       } else if (!error) {
-        setError("Access denied. This wallet is not an authorized faculty member.");
+        setError("Access denied. This wallet is not the authorized administrator.");
       }
     }
-  }, [account, view, onLogin, isPending, adminAddress, error]);
+  }, [account, view, onLogin, isPending, error]);
 
   const handleAdminConnect = async () => {
     setError("");
+    if (ADMIN_ADDRESS_MISSING) {
+      setError("VITE_ADMIN_ADDRESS is not configured. Add it to the frontend env and restart the dev server.");
+      return;
+    }
     if (account) {
-      if (adminAddress && account.toLowerCase() === adminAddress.toLowerCase()) {
+      if (account.toLowerCase() === ADMIN_ADDRESS.toLowerCase()) {
         onLogin("admin");
       } else {
-        setError("Access denied. This wallet is not an authorized faculty member.");
+        setError("Access denied. This wallet is not the authorized administrator.");
       }
       return;
     }

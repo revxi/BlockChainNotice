@@ -28,11 +28,15 @@ function base58Encode(buffer) {
 export async function generateIPFSHash(content) {
   if (!content) return "";
 
+  if (!globalThis.crypto || !globalThis.crypto.subtle || typeof globalThis.crypto.subtle.digest !== 'function') {
+    throw new Error('Web Crypto API (crypto.subtle.digest) is not available in this environment. Ensure you run in a secure browser context.');
+  }
+
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
 
   // Hash the content using SHA-256
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', data);
   const hashArray = new Uint8Array(hashBuffer);
 
   // IPFS CIDv0 (Qm...) is a multihash: 0x12 (SHA-256 prefix) + 0x20 (32 bytes length) + digest
