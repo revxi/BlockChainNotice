@@ -6,6 +6,38 @@ BlockNotice is a dApp (decentralized application) that enables colleges and inst
 
 ---
 
+## ✨ NEW: Tamper-Evident Backend System (Blockchain Principles Without Smart Contracts)
+
+We've added a **cryptographically verifiable notice ledger** that implements blockchain principles entirely within your backend—without smart contracts, gas fees, or blockchain overhead.
+
+### What This Means
+
+✅ **Detect Tampering Instantly** - If anyone changes a notice, verification fails  
+✅ **No Blockchain Needed** - Works with PostgreSQL  
+✅ **SHA-256 Hashing** - Same security as Bitcoin  
+✅ **Immutable Chain** - Each notice links cryptographically to the previous one  
+✅ **Production Ready** - Full test suites included  
+
+### Quick Start (5 minutes)
+```bash
+cd blockchain/backend
+npm install
+createdb blocknotice
+cp .env.example .env  # Configure database
+npm start
+node test-tamper-evident.js
+```
+
+### Documentation
+- 📖 **[Start Here: IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md)** - Overview & quick start
+- 👨‍🏫 **[Step-by-Step Tutorial](TUTORIAL_STEP_BY_STEP.md)** - Complete walkthrough
+- ⚡ **[Quick Reference](QUICK_REFERENCE.md)** - One-page cheat sheet
+- 🔐 **[Full Technical Guide](TAMPER_EVIDENT_IMPLEMENTATION.md)** - Deep dive
+- 📋 **[Deployment Checklist](DEPLOYMENT_CHECKLIST.md)** - Production deployment
+- 📚 **[Documentation Index](DOCUMENTATION_INDEX.md)** - All resources
+
+---
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -16,6 +48,7 @@ BlockNotice is a dApp (decentralized application) that enables colleges and inst
   - [Prerequisites](#prerequisites)
   - [Frontend Setup](#frontend-setup)
   - [Smart Contract Setup](#smart-contract-setup)
+  - [Backend Setup (Tamper-Evident System)](#backend-setup-tamper-evident-system)
   - [Environment Variables](#environment-variables)
 - [Usage](#usage)
 - [Smart Contract](#smart-contract)
