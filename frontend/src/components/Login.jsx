@@ -2,41 +2,35 @@ import React, { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors";
 import { AlertCircle, ArrowRight, Wallet, Shield } from "lucide-react";
-import { getNonce, verifySignature, setToken } from "../utils/api";
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
   const { connectors, connect, isPending, error: connectError } = useConnect();
 
-  const [view, setView]       = useState("home");
-  const [error, setError]     = useState("");
-  const [signing, setSigning] = useState(false);
+  const [view, setView]   = useState("home");
+  const [error, setError] = useState("");
+
+  // Once wallet connects on faculty view, log them in immediately
+  useEffect(() => {
+    if (account && view === "faculty") {
+      onLogin("faculty");
+    }
+  }, [account, view]);
 
   useEffect(() => {
     if (connectError) {
       setError(
-        connectError.message?.includes("not installed") || connectError.message?.includes("not found")
-          ? "Wallet not found. Please install MetaMask."
-          : connectError.message?.includes("rejected") || connectError.message?.includes("denied")
+        connectError.message?.includes("rejected") || connectError.message?.includes("denied")
           ? "Connection rejected. Please try again."
-          : "Failed to connect wallet."
+          : "Failed to connect wallet. Is MetaMask installed?"
       );
     }
   }, [connectError]);
 
-  // Once wallet is connected while on admin view, auto-trigger signing
-  useEffect(() => {
-    if (account && view === "admin" && !signing && !error) {
-      handleSign();
-    }
-  }, [account, view]);
-
-  const handleConnectAndSign = async () => {
+  const handleFacultyLogin = () => {
     setError("");
-    if (account) {
-      await handleSign();
-      return;
-    }
+    if (account) { onLogin("faculty"); return; }
+
     if (!isMetaMaskInstalled()) {
       setError("MetaMask not detected. Install it from metamask.io.");
       window.open("https://metamask.io/download/", "_blank");
@@ -46,45 +40,16 @@ export default function Login({ onLogin }) {
     if (connector) {
       connect({ connector });
     } else {
-      try {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-      } catch (err) {
-        setError(err.code === 4001 ? "Connection rejected." : "Failed to connect MetaMask.");
-      }
+      window.ethereum?.request({ method: "eth_requestAccounts" }).catch(() =>
+        setError("Connection rejected.")
+      );
     }
   };
-
-  const handleSign = async () => {
-    if (!account || signing) return;
-    setSigning(true);
-    setError("");
-    try {
-      const { nonce } = await getNonce(account);
-      const message = `Welcome to BlockNotice\n\nSign this message to verify your wallet.\n\nNonce: ${nonce}`;
-      const signature = await window.ethereum.request({
-        method: "personal_sign",
-        params: [message, account],
-      });
-      const { token, role } = await verifySignature(account, signature);
-      setToken(token);
-      onLogin(role);
-    } catch (err) {
-      if (err.code === 4001) {
-        setError("Signature rejected. Please approve the signing request.");
-      } else {
-        setError(err.message || "Verification failed. Please try again.");
-      }
-    } finally {
-      setSigning(false);
-    }
-  };
-
-  const isLoading = isPending || signing;
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#07090f" }}>
 
-      {/* Left panel — branding */}
+      {/* Left — branding */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-14 relative overflow-hidden"
         style={{ backgroundColor: "#0c1018" }}>
 
@@ -113,7 +78,7 @@ export default function Login({ onLogin }) {
           </h2>
           <p className="text-white/40 text-sm leading-relaxed max-w-xs">
             Official communications published to a secure database.
-            Managed by authorized administrators, readable by everyone.
+            Managed by authorized faculty, readable by everyone.
           </p>
         </div>
 
@@ -127,7 +92,7 @@ export default function Login({ onLogin }) {
         </div>
       </div>
 
-      {/* Right panel — access */}
+      {/* Right — access */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
 
@@ -139,7 +104,7 @@ export default function Login({ onLogin }) {
           </div>
 
           {view === "home" && (
-            <div className="animate-fade-in space-y-3">
+            <div className="space-y-3">
               <div className="mb-8">
                 <h1 className="text-2xl font-bold text-white mb-2">Access Portal</h1>
                 <p className="text-white/40 text-sm">Select how you would like to continue.</p>
@@ -154,19 +119,19 @@ export default function Login({ onLogin }) {
                   <div className="text-white font-semibold text-sm">Student / Public</div>
                   <div className="text-white/35 text-xs mt-0.5">Browse published notices</div>
                 </div>
-                <ArrowRight size={16} className="text-white/30 group-hover:text-white/60 group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight size={16} className="text-white/30 group-hover:text-white/60 transition-all" />
               </button>
 
               <button
-                onClick={() => { setView("admin"); setError(""); }}
+                onClick={() => { setView("faculty"); setError(""); }}
                 className="group w-full flex items-center justify-between px-5 py-4 rounded-xl border transition-all duration-200"
                 style={{ backgroundColor: "#c9a84c", borderColor: "#c9a84c" }}
               >
                 <div className="text-left">
-                  <div className="text-black font-semibold text-sm">Administrator</div>
+                  <div className="text-black font-semibold text-sm">Faculty</div>
                   <div className="text-black/50 text-xs mt-0.5">Publish &amp; manage notices</div>
                 </div>
-                <ArrowRight size={16} className="text-black/50 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight size={16} className="text-black/50 transition-transform" />
               </button>
 
               <p className="text-center text-white/20 text-xs pt-4">
@@ -175,8 +140,8 @@ export default function Login({ onLogin }) {
             </div>
           )}
 
-          {view === "admin" && (
-            <div className="animate-fade-in space-y-4">
+          {view === "faculty" && (
+            <div className="space-y-4">
               <button
                 onClick={() => { setView("home"); setError(""); }}
                 className="flex items-center gap-1.5 text-white/40 hover:text-white/70 text-xs mb-6 transition-colors"
@@ -185,25 +150,10 @@ export default function Login({ onLogin }) {
               </button>
 
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-2">Admin Access</h1>
+                <h1 className="text-2xl font-bold text-white mb-2">Faculty Login</h1>
                 <p className="text-white/40 text-sm leading-relaxed">
-                  Connect your MetaMask wallet and sign a message to verify your identity.
+                  Connect your MetaMask wallet to access the faculty panel.
                 </p>
-              </div>
-
-              {/* Steps */}
-              <div className="space-y-2 mb-6">
-                {[
-                  { n: 1, label: "Connect MetaMask wallet", done: !!account },
-                  { n: 2, label: "Sign verification message", done: false },
-                ].map(({ n, label, done }) => (
-                  <div key={n} className="flex items-center gap-3 text-sm">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${done ? "bg-emerald-500 text-white" : "border border-white/20 text-white/40"}`}>
-                      {done ? "✓" : n}
-                    </div>
-                    <span className={done ? "text-white/60 line-through" : "text-white/50"}>{label}</span>
-                  </div>
-                ))}
               </div>
 
               {error && (
@@ -213,35 +163,21 @@ export default function Login({ onLogin }) {
                 </div>
               )}
 
-              {account && (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-xl border mb-2"
-                  style={{ borderColor: "#1e2535", backgroundColor: "#0f131c" }}>
-                  <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                  <span className="text-white/50 text-xs font-mono">
-                    {account.substring(0, 8)}…{account.substring(36)}
-                  </span>
-                </div>
-              )}
-
               <button
-                onClick={handleConnectAndSign}
-                disabled={isLoading}
+                onClick={handleFacultyLogin}
+                disabled={isPending}
                 className="w-full flex items-center justify-between px-5 py-4 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "#c9a84c", color: "#000" }}
               >
                 <div className="flex items-center gap-2.5">
                   <Wallet size={16} />
-                  {isLoading
-                    ? (signing ? "Waiting for signature…" : "Connecting…")
-                    : account
-                    ? "Sign to Verify Identity"
-                    : "Connect MetaMask"}
+                  {isPending ? "Connecting…" : "Connect MetaMask"}
                 </div>
                 <ArrowRight size={15} />
               </button>
 
               <p className="text-center text-white/20 text-xs pt-2">
-                No transaction is sent. Signing is free and instant.
+                No transaction is sent. Connection is free.
               </p>
             </div>
           )}

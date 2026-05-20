@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { findInjectedConnector, isMetaMaskInstalled } from "./utils/connectors";
-import { fetchNotices, publishNotice, clearToken } from "./utils/api";
+import { fetchNotices, publishNotice } from "./utils/api";
 import { Search, Shield, Wallet, User, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
@@ -35,7 +35,7 @@ export default function App() {
     try {
       const data = await fetchNotices();
       setNotices(data);
-    } catch (err) {
+    } catch {
       setFetchError("Could not load notices. Please refresh.");
     } finally {
       setLoading(false);
@@ -49,7 +49,7 @@ export default function App() {
   const handlePublish = async (formData) => {
     setPublishing(true);
     try {
-      const notice = await publishNotice(formData.title, formData.content);
+      const notice = await publishNotice(formData.title, formData.content, account);
       setNotices((prev) => [notice, ...prev]);
       return { success: true };
     } catch (err) {
@@ -60,7 +60,6 @@ export default function App() {
   };
 
   const handleSignOut = () => {
-    clearToken();
     setUserRole(null);
     setNotices([]);
   };
@@ -88,9 +87,9 @@ export default function App() {
               <Shield size={14} className="text-white" />
             </div>
             <span className="font-bold text-slate-800 text-sm tracking-tight">BlockNotice</span>
-            {userRole === "admin" && (
+            {userRole === "faculty" && (
               <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
-                Admin
+                Faculty
               </span>
             )}
           </div>
@@ -177,10 +176,10 @@ export default function App() {
           </div>
         )}
         <div className="grid lg:grid-cols-12 gap-6 items-start">
-          {userRole === "admin" && (
+          {userRole === "faculty" && (
             <AdminPanel onPublish={handlePublish} loading={publishing} />
           )}
-          <div className={userRole === "admin" ? "lg:col-span-8" : "lg:col-span-12"}>
+          <div className={userRole === "faculty" ? "lg:col-span-8" : "lg:col-span-12"}>
             <NoticeFeed filteredNotices={filteredNotices} searchQuery={searchQuery} loading={loading} />
           </div>
         </div>

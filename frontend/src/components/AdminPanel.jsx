@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Loader2, Send, Type, FileText, ShieldCheck, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Send, Type, FileText, GraduationCap, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function AdminPanel({ onPublish, loading }) {
   const [formData, setFormData] = useState({ title: "", content: "" });
@@ -23,11 +23,11 @@ export default function AdminPanel({ onPublish, loading }) {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm sticky top-20 overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3" style={{ backgroundColor: "#f8fafc" }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
-            <ShieldCheck size={16} className="text-white" />
+            <GraduationCap size={16} className="text-white" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-800">Issue Official Notice</h3>
-            <p className="text-xs text-slate-500">Admin access only</p>
+            <p className="text-xs text-slate-500">Faculty access</p>
           </div>
         </div>
 
@@ -73,7 +73,7 @@ export default function AdminPanel({ onPublish, loading }) {
             type="submit"
             disabled={loading}
             className="w-full text-white text-sm font-semibold py-2.5 rounded-lg flex justify-center items-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-            style={{ backgroundColor: "#0f172a" }}
+            style={{ backgroundColor: "#c9a84c" }}
           >
             {loading ? (
               <><Loader2 className="animate-spin" size={15} />Publishing…</>
