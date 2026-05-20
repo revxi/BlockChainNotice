@@ -1,10 +1,15 @@
 import express from 'express';
 import pool from '../db.js';
-import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/notices — public, returns all notices newest first
+function isFaculty(req) {
+  const address = req.headers['x-wallet-address']?.toLowerCase();
+  const faculty  = process.env.ADMIN_WALLET_ADDRESS?.toLowerCase();
+  return address && faculty && address === faculty;
+}
+
+// GET /api/notices — public
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
@@ -17,10 +22,10 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/notices — admin only, publish a new notice
-router.post('/', verifyToken, async (req, res) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+// POST /api/notices — faculty only
+router.post('/', async (req, res) => {
+  if (!isFaculty(req)) {
+    return res.status(403).json({ error: 'Faculty access required' });
   }
   const { title, content } = req.body;
   if (!title?.trim() || !content?.trim()) {
@@ -29,7 +34,7 @@ router.post('/', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
       'INSERT INTO notices (title, content, published_by) VALUES ($1, $2, $3) RETURNING *',
-      [title.trim(), content.trim(), req.user.address]
+      [title.trim(), content.trim(), req.headers['x-wallet-address']]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -38,10 +43,10 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
-// DELETE /api/notices/:id — admin only
-router.delete('/:id', verifyToken, async (req, res) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+// DELETE /api/notices/:id — faculty only
+router.delete('/:id', async (req, res) => {
+  if (!isFaculty(req)) {
+    return res.status(403).json({ error: 'Faculty access required' });
   }
   const id = parseInt(req.params.id, 10);
   if (isNaN(id)) return res.status(400).json({ error: 'Invalid notice ID' });
