@@ -1,14 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 import pool from './db.js';
 import authRoutes from './routes/auth.js';
 import noticesRoutes from './routes/notices.js';
-
-dotenv.config({ path: '../.env' });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST = join(__dirname, '../frontend/dist');
