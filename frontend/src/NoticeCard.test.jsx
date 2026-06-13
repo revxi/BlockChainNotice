@@ -14,7 +14,7 @@ describe('NoticeCard', () => {
     render(<NoticeCard {...mockProps} />);
 
     // Check ID
-    expect(screen.getByText(`ID: #${mockProps.id}`)).toBeInTheDocument();
+    expect(screen.getByText(`Notice #${mockProps.id}`)).toBeInTheDocument();
 
     // Check Title
     expect(screen.getByText(mockProps.title)).toBeInTheDocument();

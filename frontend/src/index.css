@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 body {
+  background-color: #ffffff;
   background-color: #f8fafc;
   color: #0f172a;
   font-family: 'Inter', sans-serif;
@@ -19,6 +20,49 @@ html.dark body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+
+/* Crystal pulse glow */
+@keyframes crystalPulse {
+  0%, 100% { opacity: 0.85; filter: brightness(1)   drop-shadow(0 0 18px rgba(139,92,246,0.55)); }
+  50%       { opacity: 1;    filter: brightness(1.12) drop-shadow(0 0 32px rgba(249,115,22,0.5)); }
+}
+.crystal-pulse { animation: crystalPulse 3.5s ease-in-out infinite; }
+
+@keyframes crystalPulse2 {
+  0%, 100% { opacity: 0.8;  filter: brightness(1)   drop-shadow(0 0 14px rgba(56,189,248,0.6)); }
+  50%       { opacity: 1;   filter: brightness(1.1)  drop-shadow(0 0 28px rgba(139,92,246,0.55)); }
+}
+.crystal-pulse-2 { animation: crystalPulse2 4s ease-in-out infinite 0.8s; }
+
+@keyframes crystalPulse3 {
+  0%, 100% { opacity: 0.75; filter: brightness(1)   drop-shadow(0 0 16px rgba(249,115,22,0.5)); }
+  50%       { opacity: 1;   filter: brightness(1.15) drop-shadow(0 0 30px rgba(56,189,248,0.6)); }
+}
+.crystal-pulse-3 { animation: crystalPulse3 4.8s ease-in-out infinite 1.6s; }
+
+/* Slow float */
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-10px) rotate(1deg); }
+}
+.float-slow { animation: floatUp 6s ease-in-out infinite; }
+
+/* Connector line shimmer */
+@keyframes shimmer {
+  0%   { opacity: 0.2; }
+  50%  { opacity: 0.7; }
+  100% { opacity: 0.2; }
+}
+.connector-shimmer { animation: shimmer 2.5s ease-in-out infinite; }
+
+/* Gradient orb background */
+@keyframes orbDrift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(30px,-20px) scale(1.05); }
+  66%      { transform: translate(-20px,15px) scale(0.97); }
+}
 }
 .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
 

@@ -13,6 +13,7 @@ export default function AboutModal({ onClose }) {
               <BookOpen size={18} className="text-yellow-300" />
             </div>
             <div>
+              <h2 className="text-white font-bold text-lg leading-tight">BlockNotice</h2>
               <h2 className="text-white font-bold text-lg leading-tight">NoticeLedger</h2>
               <p className="text-blue-200 text-xs tracking-widest uppercase">Project README</p>
             </div>
@@ -32,12 +33,14 @@ export default function AboutModal({ onClose }) {
           <section>
             <h3 className="text-lg font-bold text-slate-900 mb-2">Overview</h3>
             <p className="text-sm leading-relaxed text-slate-600">
+              BlockNotice is a decentralized application (dApp) that enables colleges and institutions
               NoticeLedger is a decentralized application (dApp) that enables colleges and institutions
               to publish tamper-proof official notices on the Ethereum blockchain. Notices are immutable,
               verifiable, and always available — no central server required.
             </p>
             <p className="text-sm leading-relaxed text-slate-600 mt-2">
               Traditional notice boards rely on centralized servers vulnerable to data tampering,
+              unauthorized modifications, and downtime. BlockNotice replaces this with a blockchain-backed
               unauthorized modifications, and downtime. NoticeLedger replaces this with a blockchain-backed
               system where every notice is permanently recorded on-chain and only authorized administrators
               can publish.

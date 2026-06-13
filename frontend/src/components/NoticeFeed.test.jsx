@@ -26,9 +26,9 @@ describe("NoticeFeed Component", () => {
   it("renders 'No notices found' message when filteredNotices is empty", () => {
     render(<NoticeFeed filteredNotices={[]} />);
 
-    expect(screen.getByText("No notices found")).toBeInTheDocument();
+    expect(screen.getByText("No Notices Published Yet")).toBeInTheDocument();
     expect(
-      screen.getByText("There are currently no notices published on the blockchain ledger.")
+      screen.getByText("No official notices have been published to the blockchain ledger.")
     ).toBeInTheDocument();
   });
 
@@ -36,14 +36,14 @@ describe("NoticeFeed Component", () => {
     const searchQuery = "non-existent";
     render(<NoticeFeed filteredNotices={[]} searchQuery={searchQuery} />);
 
-    expect(screen.getByText("No notices found")).toBeInTheDocument();
+    expect(screen.getByText("No Results Found")).toBeInTheDocument();
     expect(
-      screen.getByText(`We couldn't find any notices matching "${searchQuery}". Try a different keyword or ID.`)
+      screen.getByText(`No notices match "${searchQuery}". Try searching by title, ID, or date.`)
     ).toBeInTheDocument();
   });
 
   it("renders correct message when filteredNotices is null", () => {
     render(<NoticeFeed filteredNotices={null} />);
-    expect(screen.getByText("No notices found")).toBeInTheDocument();
+    expect(screen.getByText("No Notices Published Yet")).toBeInTheDocument();
   });
 });

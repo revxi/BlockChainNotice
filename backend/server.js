@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 import { existsSync, mkdirSync } from 'fs';
 import pool from './db.js';
 import authRoutes from './routes/auth.js';
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notices', noticesRoutes);
 app.get('/api/health', (_, res) => res.json({ status: 'ok' }));
 
+// Serve built frontend in production
 app.use('/uploads', express.static(UPLOADS));
 
 if (existsSync(DIST)) {
