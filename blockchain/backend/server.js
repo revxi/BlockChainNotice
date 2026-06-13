@@ -74,7 +74,7 @@ try {
 
 const RPC_URL = process.env.RPC_URL || undefined;
 const NETWORK = process.env.ETHEREUM_NETWORK || 'sepolia';
-const provider = RPC_URL ? new ethers.providers.JsonRpcProvider(RPC_URL) : ethers.getDefaultProvider(NETWORK);
+const provider = RPC_URL ? new ethers.JsonRpcProvider(RPC_URL) : ethers.getDefaultProvider(NETWORK);
 let contract = null;
 if (CONTRACT_ADDRESS && ABI && ABI.length) {
   try {

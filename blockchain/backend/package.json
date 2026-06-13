@@ -1,40 +1,5 @@
 
-- 
-+ # Server Configuration
-+ PORT=3001
-+ BACKEND_PORT=3001
-+ 
-+ # Frontend URL (for CORS)
-+ FRONTEND_URL=http://localhost:5173
-+ 
-+ # ============================================================
-+ # PostgreSQL Database Configuration
-+ # ============================================================
-+ 
-+ # Full connection URL (recommended)
-+ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/blocknotice
-+ 
-+ # Admin wallet address (for faculty-only access)
-+ ADMIN_WALLET_ADDRESS=0xYourFacultyWalletAddressHere
-+ 
-- 
-+ # Server Configuration
-+ PORT=3001
-+ BACKEND_PORT=3001
-+ 
-+ # Frontend URL (for CORS)
-+ FRONTEND_URL=http://localhost:5173
-+ 
-+ # ============================================================
-+ # PostgreSQL Database Configuration
-+ # ============================================================
-+ 
-+ # Full connection URL (recommended)
-+ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/blocknotice
-+ 
-+ # Admin wallet address (for faculty-only access)
-+ ADMIN_WALLET_ADDRESS=0xYourFacultyWalletAddressHere
-+ {
+{
   "name": "backend",
   "version": "1.0.0",
   "description": "",
