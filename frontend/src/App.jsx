@@ -6,6 +6,7 @@ import { Search, Shield, Wallet, User, AlertCircle } from "lucide-react";
 import AdminPanel from "./components/AdminPanel";
 import NoticeFeed from "./components/NoticeFeed";
 import Login from "./components/Login";
+import ThemeToggle from "./components/ThemeToggle";
 
 export default function App() {
   const { address: account } = useAccount();
@@ -50,6 +51,10 @@ export default function App() {
     setPublishing(true);
     try {
       const notice = await publishNotice(formData.title, formData.content, account);
+  const handlePublish = async (formData, files = []) => {
+    setPublishing(true);
+    try {
+      const notice = await publishNotice(formData.title, formData.content, account, files);
       setNotices((prev) => [notice, ...prev]);
       return { success: true };
     } catch (err) {
@@ -80,6 +85,10 @@ export default function App() {
 
       {/* Navbar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors duration-200">
+
+      {/* Navbar */}
+      <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
 
           <div className="flex items-center gap-2.5 shrink-0">
@@ -89,6 +98,9 @@ export default function App() {
             <span className="font-bold text-slate-800 text-sm tracking-tight">BlockNotice</span>
             {userRole === "faculty" && (
               <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
+            <span className="font-bold text-slate-800 dark:text-slate-100 text-sm tracking-tight">NoticeLedger</span>
+            {userRole === "faculty" && (
+              <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700 uppercase tracking-wider">
                 Faculty
               </span>
             )}
@@ -98,6 +110,9 @@ export default function App() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
               className="w-full border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-slate-400 transition-all bg-slate-50"
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={14} />
+            <input
+              className="w-full border border-slate-200 dark:border-slate-700 rounded-lg pl-9 pr-4 py-1.5 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-slate-400 dark:focus:border-slate-500 transition-all bg-slate-50 dark:bg-slate-800"
               placeholder="Search notices..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -107,6 +122,10 @@ export default function App() {
           <div className="flex items-center gap-2 shrink-0">
             {walletError && (
               <div className="flex items-center gap-1.5 text-red-600 text-xs bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg">
+            <ThemeToggle />
+
+            {walletError && (
+              <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-xs bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-3 py-1.5 rounded-lg">
                 <AlertCircle size={12} className="shrink-0" />
                 <span className="hidden sm:inline">{walletError}</span>
               </div>
@@ -129,6 +148,11 @@ export default function App() {
                 ? { borderColor: "#e2e8f0", color: "#475569", backgroundColor: "#f8fafc" }
                 : { backgroundColor: "#0f172a", color: "white", borderColor: "#0f172a" }
               }
+              className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-all ${
+                account
+                  ? "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800"
+                  : "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 hover:bg-slate-800 dark:hover:bg-white"
+              }`}
             >
               {account ? (
                 <><User size={12} /><span className="font-mono">{account.substring(0, 6)}…{account.substring(38)}</span></>
@@ -140,6 +164,7 @@ export default function App() {
             <button
               onClick={handleSignOut}
               className="text-xs text-slate-400 hover:text-slate-600 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200"
+              className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-medium px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700"
             >
               Sign out
             </button>
@@ -160,6 +185,18 @@ export default function App() {
             </p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 transition-colors duration-200">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-base font-bold text-slate-800 dark:text-slate-100">Official Notice Board</h1>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              {loading ? "Loading…" : `${notices.length} notice${notices.length !== 1 ? "s" : ""} published`}
+              {searchQuery && !loading && (
+                <> · <span className="text-slate-600 dark:text-slate-300 font-medium">{filteredNotices.length} result{filteredNotices.length !== 1 ? "s" : ""}</span></>
+              )}
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Live
           </div>
@@ -173,6 +210,10 @@ export default function App() {
             <AlertCircle size={15} className="shrink-0" />
             {fetchError}
             <button onClick={loadNotices} className="ml-auto underline text-red-600 hover:text-red-800">Retry</button>
+          <div className="mb-6 flex items-center gap-2 text-red-700 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 rounded-xl">
+            <AlertCircle size={15} className="shrink-0" />
+            {fetchError}
+            <button onClick={loadNotices} className="ml-auto underline text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">Retry</button>
           </div>
         )}
         <div className="grid lg:grid-cols-12 gap-6 items-start">

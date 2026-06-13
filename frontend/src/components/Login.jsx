@@ -2,6 +2,25 @@ import React, { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors";
 import { AlertCircle, ArrowRight, Wallet, Shield } from "lucide-react";
+import { AlertCircle, ArrowRight, Wallet, Shield, Lock, Globe, BadgeCheck } from "lucide-react";
+
+const FEATURES = [
+  {
+    icon: Lock,
+    title: "Immutable Records",
+    text: "Cryptographic verification means every notice is permanently anchored to the blockchain. What you read is exactly what was published.",
+  },
+  {
+    icon: Globe,
+    title: "Decentralized Storage",
+    text: "Notice files and attachments are distributed across the InterPlanetary File System (IPFS), meaning no single point of failure and continuous uptime.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Role-Based Authorization",
+    text: "Only whitelisted faculty addresses can deploy notices via our smart contracts. While anyone can read, only authorized voices can speak.",
+  },
+];
 
 export default function Login({ onLogin }) {
   const { address: account } = useAccount();
@@ -67,6 +86,7 @@ export default function Login({ onLogin }) {
             <Shield size={16} className="text-white" />
           </div>
           <span className="text-white font-bold text-lg tracking-tight">BlockNotice</span>
+          <span className="text-white font-bold text-lg tracking-tight">NoticeLedger</span>
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -101,6 +121,31 @@ export default function Login({ onLogin }) {
               <Shield size={14} className="text-white" />
             </div>
             <span className="text-white font-bold tracking-tight">BlockNotice</span>
+        <div className="relative z-10 space-y-4">
+          {FEATURES.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="flex items-start gap-4">
+              <div className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center border border-white/10"
+                style={{ backgroundColor: "rgba(201,168,76,0.12)" }}>
+                <Icon size={16} style={{ color: "#c9a84c" }} />
+              </div>
+              <div>
+                <div className="text-white text-sm font-semibold mb-0.5">{title}</div>
+                <div className="text-white/35 text-xs leading-relaxed">{text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right — access */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+
+          <div className="flex items-center gap-2 mb-12 lg:hidden">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
+              <Shield size={14} className="text-white" />
+            </div>
+            <span className="text-white font-bold tracking-tight">NoticeLedger</span>
           </div>
 
           {view === "home" && (

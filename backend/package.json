@@ -2,6 +2,7 @@
   "name": "blocknotice-backend",
   "version": "1.0.0",
   "type": "commonjs",
+  "type": "module",
   "scripts": {
     "start": "node --require dotenv/config server.js",
     "dev": "node --require dotenv/config --watch server.js"
@@ -12,6 +13,7 @@
     "ethers": "^6.13.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
     "pg": "^8.12.0"
   }
 }

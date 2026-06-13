@@ -63,6 +63,30 @@ node test-tamper-evident.js
 
 Traditional notice boards rely on centralized servers that are vulnerable to data tampering, unauthorized modifications, and downtime. BlockNotice replaces this with a blockchain-backed system where:
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Frontend Setup](#frontend-setup)
+  - [Smart Contract Setup](#smart-contract-setup)
+  - [Environment Variables](#environment-variables)
+- [Usage](#usage)
+- [Smart Contract](#smart-contract)
+- [Security](#security)
+- [Future Enhancements](#future-enhancements)
+- [Contributors](#contributors)
+- [License](#license)
+
+---
+
+## Overview
+
+Traditional notice boards rely on centralized servers that are vulnerable to data tampering, unauthorized modifications, and downtime. BlockNotice replaces this with a blockchain-backed system where:
+
 - Every notice is recorded permanently on-chain
 - Only authorized administrators can publish
 - Anyone can read and verify notices without trusting a central server
