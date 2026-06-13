@@ -1,10 +1,76 @@
 import React, { useState } from "react";
-import { CheckCircle2, Calendar, ChevronDown, ChevronUp, Wallet } from "lucide-react";
+import { CheckCircle2, Calendar, ChevronDown, ChevronUp, Wallet, Paperclip, FileText, ExternalLink, X } from "lucide-react";
 
-export default function NoticeCard({ id, title, hash: content, date, publishedBy }) {
+function AttachmentThumb({ att }) {
+  const [lightbox, setLightbox] = useState(false);
+  const isImage = att.mimetype.startsWith("image/");
+  const url = `/uploads/${att.filename}`;
+
+  if (isImage) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setLightbox(true)}
+          className="relative group rounded-lg overflow-hidden border border-slate-200 hover:border-amber-400 transition-all"
+          style={{ width: 72, height: 72 }}
+          title={att.original_name}
+        >
+          <img
+            src={url}
+            alt={att.original_name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
+            <ExternalLink size={14} className="text-white opacity-0 group-hover:opacity-100 transition-all" />
+          </div>
+        </button>
+
+        {lightbox && (
+          <div
+            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+            onClick={() => setLightbox(false)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/40 rounded-full p-1.5"
+              onClick={() => setLightbox(false)}
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={url}
+              alt={att.original_name}
+              className="max-w-full max-h-[90vh] rounded-xl shadow-2xl object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 hover:border-amber-400 hover:bg-amber-50 transition-all text-xs text-slate-600 font-medium group"
+      title={att.original_name}
+    >
+      <FileText size={14} className="text-red-500 shrink-0" />
+      <span className="truncate max-w-[140px]">{att.original_name}</span>
+      <ExternalLink size={11} className="text-slate-300 group-hover:text-amber-500 transition-colors shrink-0 ml-auto" />
+    </a>
+  );
+}
+
+export default function NoticeCard({ id, title, hash: content, date, publishedBy, attachments = [] }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = content && content.length > 180;
   const preview = isLong && !expanded ? content.slice(0, 180).trimEnd() + "…" : content;
+
+  const images = attachments.filter((a) => a.mimetype.startsWith("image/"));
+  const pdfs   = attachments.filter((a) => a.mimetype === "application/pdf");
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 overflow-hidden flex flex-col">
@@ -15,9 +81,17 @@ export default function NoticeCard({ id, title, hash: content, date, publishedBy
           <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-mono border border-slate-200">
             #{id}
           </span>
-          <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-            <CheckCircle2 size={12} />
-            <span>Published</span>
+          <div className="flex items-center gap-2">
+            {attachments.length > 0 && (
+              <div className="flex items-center gap-1 text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-200">
+                <Paperclip size={11} />
+                <span>{attachments.length}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+              <CheckCircle2 size={12} />
+              <span>Published</span>
+            </div>
           </div>
         </div>
 
@@ -36,6 +110,18 @@ export default function NoticeCard({ id, title, hash: content, date, publishedBy
           >
             {expanded ? <><ChevronUp size={13} />Show less</> : <><ChevronDown size={13} />Read more</>}
           </button>
+        )}
+
+        {images.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {images.map((a) => <AttachmentThumb key={a.id} att={a} />)}
+          </div>
+        )}
+
+        {pdfs.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            {pdfs.map((a) => <AttachmentThumb key={a.id} att={a} />)}
+          </div>
         )}
 
         <div className="border-t border-slate-100 mt-4 pt-3 space-y-1.5">

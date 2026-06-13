@@ -46,10 +46,10 @@ export default function App() {
     if (userRole) loadNotices();
   }, [userRole, loadNotices]);
 
-  const handlePublish = async (formData) => {
+  const handlePublish = async (formData, files = []) => {
     setPublishing(true);
     try {
-      const notice = await publishNotice(formData.title, formData.content, account);
+      const notice = await publishNotice(formData.title, formData.content, account, files);
       setNotices((prev) => [notice, ...prev]);
       return { success: true };
     } catch (err) {

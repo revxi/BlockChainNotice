@@ -40,6 +40,7 @@ export default function NoticeFeed({ filteredNotices, searchQuery, loading }) {
           hash={notice.content}
           date={new Date(notice.created_at).toLocaleDateString()}
           publishedBy={notice.published_by}
+          attachments={notice.attachments || []}
         />
       ))}
     </div>
