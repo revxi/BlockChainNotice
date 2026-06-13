@@ -86,7 +86,7 @@ export default function App() {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
               <Shield size={14} className="text-white" />
             </div>
-            <span className="font-bold text-slate-800 text-sm tracking-tight">BlockNotice</span>
+            <span className="font-bold text-slate-800 text-sm tracking-tight">NoticeLedger</span>
             {userRole === "faculty" && (
               <span className="ml-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider">
                 Faculty

@@ -84,7 +84,7 @@ export default function Login({ onLogin }) {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
             <Shield size={16} className="text-white" />
           </div>
-          <span className="text-white font-bold text-lg tracking-tight">BlockNotice</span>
+          <span className="text-white font-bold text-lg tracking-tight">NoticeLedger</span>
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -124,7 +124,7 @@ export default function Login({ onLogin }) {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
               <Shield size={14} className="text-white" />
             </div>
-            <span className="text-white font-bold tracking-tight">BlockNotice</span>
+            <span className="text-white font-bold tracking-tight">NoticeLedger</span>
           </div>
 
           {view === "home" && (
