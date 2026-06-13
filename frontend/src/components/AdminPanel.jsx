@@ -8,13 +8,13 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "ap
 function FileChip({ file, onRemove }) {
   const isPdf = file.type === "application/pdf";
   return (
-    <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 max-w-full">
+    <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 dark:text-slate-200 max-w-full">
       {isPdf
         ? <File size={13} className="shrink-0 text-red-500" />
         : <FileImage size={13} className="shrink-0 text-blue-500" />
       }
       <span className="truncate max-w-[140px]" title={file.name}>{file.name}</span>
-      <span className="text-slate-400 shrink-0">({(file.size / 1024).toFixed(0)} KB)</span>
+      <span className="text-slate-400 dark:text-slate-500 shrink-0">({(file.size / 1024).toFixed(0)} KB)</span>
       <button
         type="button"
         onClick={onRemove}
@@ -84,25 +84,25 @@ export default function AdminPanel({ onPublish, loading }) {
 
   return (
     <aside className="lg:col-span-4">
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm sticky top-20 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3" style={{ backgroundColor: "#f8fafc" }}>
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm sticky top-20 overflow-hidden transition-colors duration-200">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 bg-slate-50 dark:bg-slate-800/80">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
             <GraduationCap size={16} className="text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-800">Issue Official Notice</h3>
-            <p className="text-xs text-slate-500">Faculty access</p>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">Issue Official Notice</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Faculty access</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
-              <Type size={12} className="text-slate-400" />
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+              <Type size={12} className="text-slate-400 dark:text-slate-500" />
               Notice Title
             </label>
             <input
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-amber-400 transition-all bg-white"
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-amber-400 dark:focus:border-amber-500 transition-all bg-white dark:bg-slate-900"
               placeholder="e.g. Exam Schedule – Spring 2025"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -112,12 +112,12 @@ export default function AdminPanel({ onPublish, loading }) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
-              <FileText size={12} className="text-slate-400" />
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+              <FileText size={12} className="text-slate-400 dark:text-slate-500" />
               Notice Content
             </label>
             <textarea
-              className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-amber-400 transition-all bg-white min-h-[120px] resize-none"
+              className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-amber-400 dark:focus:border-amber-500 transition-all bg-white dark:bg-slate-900 min-h-[120px] resize-none"
               placeholder="Enter the full details of this notice..."
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
@@ -127,23 +127,23 @@ export default function AdminPanel({ onPublish, loading }) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
-              <Paperclip size={12} className="text-slate-400" />
+            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+              <Paperclip size={12} className="text-slate-400 dark:text-slate-500" />
               Attachments
-              <span className="text-slate-400 normal-case font-normal">(images &amp; PDFs, max {MAX_FILES})</span>
+              <span className="text-slate-400 dark:text-slate-500 normal-case font-normal">(images &amp; PDFs, max {MAX_FILES})</span>
             </label>
 
             <div
-              className="border-2 border-dashed border-slate-200 rounded-lg p-4 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50/40 transition-all"
+              className="border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-lg p-4 text-center cursor-pointer hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-all"
               onClick={() => inputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
             >
-              <Paperclip size={18} className="mx-auto mb-1.5 text-slate-300" />
-              <p className="text-xs text-slate-400">
-                <span className="font-semibold text-amber-600">Click to browse</span> or drag &amp; drop
+              <Paperclip size={18} className="mx-auto mb-1.5 text-slate-300 dark:text-slate-600" />
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="font-semibold text-amber-600 dark:text-amber-500">Click to browse</span> or drag &amp; drop
               </p>
-              <p className="text-[10px] text-slate-300 mt-0.5">JPG, PNG, GIF, WEBP, PDF · max {MAX_SIZE_MB} MB each</p>
+              <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">JPG, PNG, GIF, WEBP, PDF · max {MAX_SIZE_MB} MB each</p>
               <input
                 ref={inputRef}
                 type="file"
@@ -163,14 +163,18 @@ export default function AdminPanel({ onPublish, loading }) {
             )}
 
             {fileError && (
-              <p className="text-xs text-red-600 flex items-center gap-1">
+              <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
                 <AlertCircle size={11} /> {fileError}
               </p>
             )}
           </div>
 
           {status && (
-            <div className={`flex items-center gap-2 text-xs p-3 rounded-lg border ${status.ok ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"}`}>
+            <div className={`flex items-center gap-2 text-xs p-3 rounded-lg border ${
+              status.ok
+                ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400"
+                : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
+            }`}>
               {status.ok ? <CheckCircle size={13} /> : <AlertCircle size={13} />}
               {status.msg}
             </div>

@@ -5,9 +5,14 @@
 @tailwind utilities;
 
 body {
-  background-color: #ffffff;
+  background-color: #f8fafc;
   color: #0f172a;
   font-family: 'Inter', sans-serif;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
 }
 
 /* Fade in */
