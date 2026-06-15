@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { findInjectedConnector, isMetaMaskInstalled } from "../utils/connectors";
-import { AlertCircle, ArrowRight, Wallet, Shield } from "lucide-react";
 import { AlertCircle, ArrowRight, Wallet, Shield, Lock, Globe, BadgeCheck } from "lucide-react";
 
 const FEATURES = [
@@ -86,7 +85,6 @@ export default function Login({ onLogin }) {
             <Shield size={16} className="text-white" />
           </div>
           <span className="text-white font-bold text-lg tracking-tight">BlockNotice</span>
-          <span className="text-white font-bold text-lg tracking-tight">NoticeLedger</span>
         </div>
 
         <div className="relative z-10 space-y-6">
@@ -110,17 +108,7 @@ export default function Login({ onLogin }) {
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Right — access */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm">
-
-          <div className="flex items-center gap-2 mb-12 lg:hidden">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
-              <Shield size={14} className="text-white" />
-            </div>
-            <span className="text-white font-bold tracking-tight">BlockNotice</span>
         <div className="relative z-10 space-y-4">
           {FEATURES.map(({ icon: Icon, title, text }) => (
             <div key={title} className="flex items-start gap-4">
@@ -145,7 +133,7 @@ export default function Login({ onLogin }) {
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#c9a84c" }}>
               <Shield size={14} className="text-white" />
             </div>
-            <span className="text-white font-bold tracking-tight">NoticeLedger</span>
+            <span className="text-white font-bold tracking-tight">BlockNotice</span>
           </div>
 
           {view === "home" && (

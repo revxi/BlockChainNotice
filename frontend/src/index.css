@@ -63,7 +63,6 @@ html.dark body {
   33%      { transform: translate(30px,-20px) scale(1.05); }
   66%      { transform: translate(-20px,15px) scale(0.97); }
 }
-}
 .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
 
 /* Crystal pulse glow */

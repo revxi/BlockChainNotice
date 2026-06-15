@@ -39,7 +39,6 @@ router.post('/verify', (req, res) => {
   }
 
   const message = `Welcome to BlockNotice\n\nSign this message to verify your wallet.\n\nNonce: ${entry.nonce}`;
-  const message = `Welcome to NoticeLedger\n\nSign this message to verify your wallet.\n\nNonce: ${entry.nonce}`;
 
   try {
     const recovered = ethers.verifyMessage(message, signature);
