@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^7.0.0",
     "hardhat": "^3.1.5"
