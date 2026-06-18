@@ -34,7 +34,7 @@ export default function AdminDashboard({ notices = [], onPublish, isPublishing, 
                 <Shield size={18} className="text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-slate-100 leading-tight">BlockNotice</h1>
+                <h1 className="font-bold text-slate-100 leading-tight">NoticeLedger</h1>
                 <p className="text-xs text-slate-400 font-medium">Department Portal</p>
               </div>
             </div>

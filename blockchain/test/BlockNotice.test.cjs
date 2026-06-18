@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("BlockNotice", function () {
+describe("NoticeLedger", function () {
   let blockNotice;
   let admin;
   let addr1;
@@ -9,8 +9,8 @@ describe("BlockNotice", function () {
 
   beforeEach(async function () {
     [admin, addr1, addr2] = await ethers.getSigners();
-    const BlockNotice = await ethers.getContractFactory("BlockNotice");
-    blockNotice = await BlockNotice.deploy();
+    const NoticeLedger = await ethers.getContractFactory("NoticeLedger");
+    blockNotice = await NoticeLedger.deploy();
     await blockNotice.waitForDeployment();
   });
 

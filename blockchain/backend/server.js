@@ -25,7 +25,7 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'blocknotice'
+  database: process.env.DB_NAME || 'noticeledger'
 });
 
 // Initialize database schema
@@ -98,7 +98,7 @@ if (process.env.NODE_ENV === 'development') {
       "http://localhost:5173",
       "http://localhost:3000",
       "http://localhost:5002",
-      process.env.FRONTEND_URL || "https://blocknotice.vercel.app"
+      process.env.FRONTEND_URL || "https://noticeledger.vercel.app"
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -109,7 +109,7 @@ if (process.env.NODE_ENV === 'development') {
 // Health check endpoint
 app.get("/", (req, res) => {
   res.status(200).json({ 
-    message: "BlockNotice Backend Running", 
+    message: "NoticeLedger Backend Running", 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development"
   });

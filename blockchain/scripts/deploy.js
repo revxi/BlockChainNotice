@@ -4,17 +4,17 @@ async function main() {
   console.log("🚀 Starting deployment...");
 
   // Get the contract factory
-  const BlockNotice = await hre.ethers.getContractFactory("BlockNotice");
+  const NoticeLedger = await hre.ethers.getContractFactory("NoticeLedger");
 
   // Deploy the contract
-  const contract = await BlockNotice.deploy();
+  const contract = await NoticeLedger.deploy();
 
   // Wait for deployment to finish
   await contract.waitForDeployment();
 
   const address = await contract.getAddress();
 
-  console.log("✅ BlockNotice deployed to:", address);
+  console.log("✅ NoticeLedger deployed to:", address);
   console.log("📝 Copy this address to your frontend .env file!");
 }
 

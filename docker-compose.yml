@@ -3,11 +3,11 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: blocknotice-postgres
+    container_name: noticeledger-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: blocknotice
+      POSTGRES_DB: noticeledger
     ports:
       - "5432:5432"
     volumes:

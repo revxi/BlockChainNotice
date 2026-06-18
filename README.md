@@ -1,4 +1,4 @@
-# BlockNotice
+# NoticeLedger
 
 **A Decentralized Official Notice Board powered by the Ethereum Blockchain**
 
@@ -22,7 +22,7 @@ We've added a **cryptographically verifiable notice ledger** that implements blo
 ```bash
 cd blockchain/backend
 npm install
-createdb blocknotice
+createdb noticeledger
 cp .env.example .env  # Configure database
 npm start
 node test-tamper-evident.js

@@ -2,11 +2,11 @@ const hre = require("hardhat");
 
 async function main() {
   console.log("🚀 Starting deployment...");
-  const BlockNotice = await hre.ethers.getContractFactory("BlockNotice");
-  const contract = await BlockNotice.deploy();
+  const NoticeLedger = await hre.ethers.getContractFactory("NoticeLedger");
+  const contract = await NoticeLedger.deploy();
   await contract.waitForDeployment();
   const address = await contract.getAddress();
-  console.log("✅ BlockNotice deployed to:", address);
+  console.log("✅ NoticeLedger deployed to:", address);
 }
 
 main().catch((error) => {
