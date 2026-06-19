@@ -4,14 +4,19 @@ const dotenv = require("dotenv");
 const helmet = require("helmet");
 const postgres = require('pg');
 const path = require('path');
+const multer = require('multer');
 
 dotenv.config();
 
 const { ethers } = require('ethers');
-const { calculateHash, getGenesisHash, verifyChain, verifySingleNotice } = require('../../backend/utils/blockchain');
+const { calculateHash, getGenesisHash, verifyChain, verifySingleNotice } = require('../../backend/utils/blockchain.cjs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 5 }
+});
 
 // ============================================================
 // DATABASE SETUP (PostgreSQL with Tamper-Evident Schema)
@@ -72,15 +77,120 @@ try {
   }
 }
 
-const RPC_URL = process.env.RPC_URL || undefined;
+function isPlaceholder(value) {
+  return !value || /YOUR_|your_|example|placeholder/i.test(value);
+}
+
+const RPC_URL = isPlaceholder(process.env.RPC_URL) ? undefined : process.env.RPC_URL;
 const NETWORK = process.env.ETHEREUM_NETWORK || 'sepolia';
-const provider = RPC_URL ? new ethers.JsonRpcProvider(RPC_URL) : ethers.getDefaultProvider(NETWORK);
+const provider = RPC_URL ? new ethers.JsonRpcProvider(RPC_URL) : null;
 let contract = null;
-if (CONTRACT_ADDRESS && ABI && ABI.length) {
+if (provider && CONTRACT_ADDRESS && ABI && ABI.length) {
   try {
     contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
   } catch (e) {
     console.warn('Failed to instantiate contract on backend:', e.message);
+  }
+} else if (!provider) {
+  console.warn('RPC_URL is not configured. Contract-backed endpoints will use database fallback where possible.');
+}
+
+function normalizeContractNotice(n, fallbackId) {
+  return {
+    id: (n.id ?? fallbackId).toString(),
+    title: n.title ?? n[0] ?? '',
+    content: n.content ?? n[1] ?? '',
+    author: n.author ?? '',
+    timestamp: (n.timestamp ?? n[2] ?? 0).toString(),
+    department: n.department ?? n[3] ?? '',
+    date: new Date(Number(n.timestamp ?? n[2] ?? 0) * 1000).toISOString(),
+  };
+}
+
+async function getContractNotices() {
+  if (!contract) throw new Error('Contract not configured for backend.');
+
+  if (typeof contract.getAllNotices === 'function') {
+    const raw = await contract.getAllNotices();
+    return (raw || []).map((notice, index) => normalizeContractNotice(notice, index));
+  }
+
+  if (typeof contract.totalNotices === 'function' && typeof contract.notices === 'function') {
+    const total = Number(await contract.totalNotices());
+    const notices = [];
+    for (let i = 0; i < total; i++) {
+      notices.push(normalizeContractNotice(await contract.notices(i), i));
+    }
+    return notices;
+  }
+
+  throw new Error('ABI does not expose getAllNotices() or totalNotices()/notices().');
+}
+
+function normalizeDbNotice(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    published_by: row.author,
+    author: row.author,
+    timestamp: row.timestamp,
+    hash: row.hash,
+    previous_hash: row.previous_hash,
+    created_at: row.created_at,
+    attachments: []
+  };
+}
+
+async function getDbNotices(order = 'DESC') {
+  const result = await pool.query(
+    `SELECT id, title, content, author, timestamp, hash, previous_hash, created_at
+     FROM notices_chain
+     ORDER BY created_at ${order}`
+  );
+  return result.rows.map(normalizeDbNotice);
+}
+
+async function createDbNotice({ title, content, author }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const lastNoticeResult = await client.query(
+      `SELECT hash FROM notices_chain ORDER BY created_at DESC LIMIT 1`
+    );
+    const previousHash = lastNoticeResult.rows.length > 0
+      ? lastNoticeResult.rows[0].hash
+      : getGenesisHash();
+
+    const noticeData = {
+      title: title.trim(),
+      content: content.trim()
+    };
+    const timestamp = new Date().toISOString();
+    const hash = calculateHash(noticeData, timestamp, previousHash);
+
+    const insertResult = await client.query(
+      `INSERT INTO notices_chain (title, content, author, timestamp, hash, previous_hash, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $4)
+       RETURNING id, title, content, author, timestamp, hash, previous_hash, created_at`,
+      [
+        noticeData.title,
+        noticeData.content,
+        author || 'system',
+        timestamp,
+        hash,
+        previousHash
+      ]
+    );
+
+    await client.query('COMMIT');
+    return normalizeDbNotice(insertResult.rows[0]);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
   }
 }
 
@@ -117,21 +227,36 @@ app.get("/", (req, res) => {
 
 // Get all notices (reads from blockchain via provider + contract ABI)
 app.get('/api/notices', async (req, res) => {
-  if (!contract) return res.status(500).json({ error: 'Contract not configured for backend.' });
   try {
-    const raw = await contract.getAllNotices();
-    const notices = (raw || []).map((n) => ({
-      id: n.id.toString(),
-      title: n.title,
-      content: n.content,
-      author: n.author,
-      timestamp: n.timestamp.toString(),
-      date: new Date(Number(n.timestamp) * 1000).toISOString(),
-    }));
-    res.json({ notices });
+    if (contract) {
+      const notices = await getContractNotices();
+      return res.json(notices);
+    }
+    const notices = await getDbNotices('DESC');
+    res.json(notices);
   } catch (err) {
-    console.error('Error fetching notices from contract:', err.message || err);
+    console.error('Error fetching notices:', err.message || err);
     res.status(500).json({ error: 'Failed to fetch notices' });
+  }
+});
+
+app.post('/api/notices', upload.array('files', 5), async (req, res) => {
+  try {
+    const { title, content } = req.body;
+    if (!title || !title.trim() || !content || !content.trim()) {
+      return res.status(400).json({ error: 'Title and content are required' });
+    }
+
+    const notice = await createDbNotice({
+      title,
+      content,
+      author: req.headers['x-wallet-address'] || req.body.author || 'system'
+    });
+
+    res.status(201).json(notice);
+  } catch (err) {
+    console.error('Error publishing notice:', err.message || err);
+    res.status(500).json({ error: 'Failed to publish notice' });
   }
 });
 
@@ -142,14 +267,7 @@ app.get('/api/notices/:id', async (req, res) => {
   try {
     const n = await contract.getNotice(id);
     if (!n) return res.status(404).json({ error: 'Notice not found' });
-    const notice = {
-      id: n.id.toString(),
-      title: n.title,
-      content: n.content,
-      author: n.author,
-      timestamp: n.timestamp.toString(),
-      date: new Date(Number(n.timestamp) * 1000).toISOString(),
-    };
+    const notice = normalizeContractNotice(n, id);
     res.json({ notice });
   } catch (err) {
     console.error('Error fetching notice:', err.message || err);
@@ -161,16 +279,7 @@ app.get('/api/notices/:id', async (req, res) => {
 app.get('/api/verified', async (req, res) => {
   if (!contract) return res.status(500).json({ error: 'Contract not configured for backend.' });
   try {
-    const raw = await contract.getAllNotices();
-    const notices = (raw || []).map((n) => ({
-      id: n.id.toString(),
-      title: n.title,
-      content: n.content,
-      author: n.author,
-      timestamp: n.timestamp.toString(),
-      date: new Date(Number(n.timestamp) * 1000).toISOString(),
-      verified: true,
-    }));
+    const notices = (await getContractNotices()).map((notice) => ({ ...notice, verified: true }));
     res.json({ verified: notices });
   } catch (err) {
     console.error('Error fetching verified records:', err.message || err);
@@ -182,9 +291,8 @@ app.get('/api/verified', async (req, res) => {
 app.get('/api/analytics', async (req, res) => {
   if (!contract) return res.status(500).json({ error: 'Contract not configured for backend.' });
   try {
-    const raw = await contract.getAllNotices();
-    const notices = (raw || []).map((n) => ({
-      id: n.id.toString(),
+    const notices = (await getContractNotices()).map((n) => ({
+      id: n.id,
       title: n.title,
       content: n.content,
       timestamp: Number(n.timestamp),
@@ -304,7 +412,7 @@ app.post('/api/notices-chain', async (req, res) => {
     // 4. Save to database (atomic transaction)
     const insertResult = await client.query(
       `INSERT INTO notices_chain (title, content, author, timestamp, hash, previous_hash, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       VALUES ($1, $2, $3, $4, $5, $6, $4)
        RETURNING id, title, content, author, timestamp, hash, previous_hash, created_at`,
       [
         noticeData.title,
